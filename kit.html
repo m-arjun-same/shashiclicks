@@ -6,54 +6,55 @@
 <title>Book a Shoot — ShashiClicks Hyderabad</title>
 <meta name="description" content="Book a shoot at ShashiClicks, Hyderabad. Pick your service, add your names, and send the booking to the studio on WhatsApp or email. Booking deposit ₹5,000.">
 <meta name="theme-color" content="#0D0A07">
-<link rel="stylesheet" href="css/main.css?v=3">
-<link rel="stylesheet" href="css/kit.css?v=3">
+<link rel="stylesheet" href="css/main.css?v=5">
+<link rel="stylesheet" href="css/kit.css?v=5">
 </head>
 <body>
-<header class="kit__bar">
-  <a class="bar__logo" href="index.html">SHASHI<b>CLICKS</b>®</a>
-  <a class="btn" href="index.html">← Back to the studio</a>
-</header>
-
 <div class="kit">
   <div class="kit__stage">
     <img src="assets/img/kit-base.webp" alt="Family photograph by ShashiClicks — the live booking preview frame">
     <canvas id="kitCanvas" width="1200" height="900"></canvas>
-    <div class="kit__stagecap">
-      <h1>Book your<br><span>shoot.</span></h1>
-      <p>Booking deposit ₹5,000 — adjusted against your package total. Full pricing catalog shared instantly on WhatsApp, call or email.</p>
+    <div class="kit__toprow">
+      <a class="bar__logo" href="index.html">SHASHI<b>CLICKS</b>®</a>
+      <span class="kit__room">The Shoot Room</span>
+      <a class="kit__back" href="index.html">Back to the studio →</a>
     </div>
+    <div class="kit__stagecap"><span id="stageSvc">Maternity Photography</span> · ShashiClicks® Hyderabad</div>
   </div>
 
   <form class="kit__panel" id="kitForm">
-    <h2>The Shoot Room — ShashiClicks® · Hyderabad</h2>
+    <div class="kit__head">
+      <h1>Get your custom quote.</h1>
+      <p class="kit__sub">Booking deposit <b>₹5,000</b> · Adjusted against your package · Full catalog on WhatsApp</p>
+    </div>
 
-    <div class="step">
-      <div class="step__t"><b>1</b>Service</div>
+    <section class="ksec">
+      <div class="ksec__h"><h3>Service</h3><span id="vService">Maternity</span></div>
       <div class="chips" id="serviceChips"></div>
-    </div>
+    </section>
 
-    <div class="step">
-      <div class="step__t"><b>2</b>Frame colour</div>
-      <div class="swatches" id="swatches">
-        <button type="button" data-color="#C9A227" style="background:#C9A227" class="on" aria-label="Gold frame"></button>
-        <button type="button" data-color="#EDE4D2" style="background:#EDE4D2" aria-label="Sand frame"></button>
-        <button type="button" data-color="#F6F0E2" style="background:#F6F0E2" aria-label="Cream frame"></button>
-        <button type="button" data-color="#8A7F6C" style="background:#8A7F6C" aria-label="Taupe frame"></button>
+    <section class="ksec">
+      <div class="ksec__h"><h3>Frame colour</h3><span id="vColor">Classic Gold</span></div>
+      <div class="swbar" id="swatches">
+        <button type="button" data-color="#C9A227" data-name="Classic Gold" style="background:#C9A227" class="on" aria-label="Classic Gold frame"></button>
+        <button type="button" data-color="#EDE4D2" data-name="Sand" style="background:#EDE4D2" aria-label="Sand frame"></button>
+        <button type="button" data-color="#F6F0E2" data-name="Cream" style="background:#F6F0E2" aria-label="Cream frame"></button>
+        <button type="button" data-color="#8A7F6C" data-name="Warm Taupe" style="background:#8A7F6C" aria-label="Warm Taupe frame"></button>
+        <button type="button" data-color="#2A2015" data-name="Espresso" style="background:#2A2015" aria-label="Espresso frame"></button>
       </div>
-    </div>
+      <p class="kit__note">Every frame is finished by hand in the studio. The preview is approximate — we confirm the final finish with you before printing.</p>
+    </section>
 
-    <div class="step">
-      <div class="step__t"><b>3</b>Your names</div>
+    <section class="ksec">
+      <div class="ksec__h"><h3>Your names</h3><span>Type yours</span></div>
+      <p class="kit__label">Names framed on the portrait — initials stay</p>
+      <div class="ini-box"><span id="iniPreview">YN</span></div>
       <input type="text" id="kName" placeholder="Your name *" required>
       <input type="text" id="kNames" placeholder="Names to frame (e.g. Aarav &amp; Diya)">
-      <input type="tel" id="kPhone" placeholder="Phone / WhatsApp *">
-      <input type="email" id="kEmail" placeholder="Email">
-    </div>
+    </section>
 
-    <div class="step">
-      <div class="step__t"><b>4</b>Date &amp; place</div>
-      <input type="date" id="kDate">
+    <section class="ksec">
+      <div class="ksec__h"><h3>Shoot location</h3><span id="vPlace">Studio — Hafeezpet</span></div>
       <div class="chips" id="placeChips">
         <button type="button" class="on">Studio — Hafeezpet</button>
         <button type="button">Outdoor location</button>
@@ -61,42 +62,39 @@
         <button type="button">Event venue</button>
       </div>
       <p class="kit__note">Studio shooting is included in all packages at no extra charge. Location / garden charges are extra, at current rates.</p>
-    </div>
+    </section>
 
-    <div class="step">
-      <div class="step__t"><b>5</b>Add-ons</div>
-      <label class="ck"><input type="checkbox" class="addon" value="Image HD retouch"> Image HD retouch</label>
-      <label class="ck"><input type="checkbox" class="addon" value="Album design & printing"> Album design &amp; printing</label>
-      <label class="ck"><input type="checkbox" class="addon" value="Poster design"> Poster design (in-house printing up to 44″ wide)</label>
-      <label class="ck"><input type="checkbox" class="addon" value="Video editing"> Video editing</label>
-      <label class="ck"><input type="checkbox" class="addon" value="Photobook"> Photobook</label>
-      <label class="ck"><input type="checkbox" class="addon" value="Additional edited photos (₹600 each)"> Additional edited photos — ₹600 each</label>
-      <label class="ck"><input type="checkbox" class="addon" value="Private session — photos not shared online (40% non-usage fee)"> Private session — photos not shared online</label>
-    </div>
-
-    <div class="step">
-      <div class="step__t"><b>6</b>Notes</div>
-      <textarea id="kNotes" rows="3" placeholder="Tell us about your story, themes you love, anything we should know…"></textarea>
-    </div>
-
-    <div class="kit__review">
-      <dl>
-        <dt>Service</dt><dd id="rService">Maternity Photography</dd>
-        <dt>Names</dt><dd id="rNames">—</dd>
-        <dt>Date</dt><dd id="rDate">To be discussed</dd>
-        <dt>Place</dt><dd id="rPlace">Studio — Hafeezpet</dd>
-        <dt>Due to book</dt><dd>₹5,000 deposit (adjusted against your package)</dd>
-      </dl>
-      <div class="kit__actions">
-        <button type="button" class="btn btn--solid" id="sendWa">Send on WhatsApp →</button>
-        <button type="button" class="btn" id="sendMail">Send by Email →</button>
-        <a class="btn" href="tel:+917032857077">Call +91 70328 57077</a>
+    <section class="ksec">
+      <div class="ksec__h"><h3>Details &amp; add-ons</h3><span>Date &amp; contact</span></div>
+      <div class="kit__grid2">
+        <input type="date" id="kDate" aria-label="Preferred date">
+        <input type="tel" id="kPhone" placeholder="Phone / WhatsApp *">
       </div>
-      <p class="kit__note">No payment is taken on this page. The studio confirms your slot on call / WhatsApp — you can call 7 days a week, 10:30 AM – 7 PM. Studio visits by prior appointment only.</p>
+      <input type="email" id="kEmail" placeholder="Email">
+      <label class="ck"><input type="checkbox" class="addon" value="Image HD retouch"><span>Image HD retouch</span></label>
+      <label class="ck"><input type="checkbox" class="addon" value="Album design & printing"><span>Album design &amp; printing</span></label>
+      <label class="ck"><input type="checkbox" class="addon" value="Poster design"><span>Poster design (in-house printing up to 44″ wide)</span></label>
+      <label class="ck"><input type="checkbox" class="addon" value="Video editing"><span>Video editing</span></label>
+      <label class="ck"><input type="checkbox" class="addon" value="Photobook"><span>Photobook</span></label>
+      <label class="ck"><input type="checkbox" class="addon" value="Additional edited photos (₹600 each)"><span>Additional edited photos — ₹600 each</span></label>
+      <label class="ck"><input type="checkbox" class="addon" value="Private session — photos not shared online (40% non-usage fee)"><span>Private session — photos not shared online</span></label>
+      <textarea id="kNotes" rows="3" placeholder="Tell us about your story, themes you love, anything we should know…"></textarea>
+    </section>
+
+    <div class="kit__summary">
+      <div class="sumrow"><span id="sumLine">Maternity Photography — booking deposit</span><span>₹5,000</span></div>
+      <div class="sumrow sumrow--total"><span>Total due today</span><span>₹5,000</span></div>
+      <div class="sumrow sumrow--gold"><span>Adjusted against your package total</span><span>− ₹5,000 later</span></div>
+      <button type="button" class="kit__cta" id="sendWa">Request your shoot <span class="arr">→</span></button>
+      <div class="kit__alt">
+        <button type="button" id="sendMail">Send by email</button>
+        <a href="tel:+917032857077">Call +91 70328 57077</a>
+      </div>
+      <p class="kit__fine">No payment now — we confirm availability first. Studio visits by prior appointment only · 10:30 AM – 7 PM, 7 days.</p>
     </div>
   </form>
 </div>
 
-<script src="js/kit.js?v=3"></script>
+<script src="js/kit.js?v=5"></script>
 </body>
 </html>
