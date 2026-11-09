@@ -1,0 +1,35 @@
+/* Kit page — "Book a Shoot" in the reference kit-room layout: sticky stage left, configurator right. */
+.kit{display:grid;grid-template-columns:58% 42%;min-height:100vh;background:var(--court2)}
+.kit__stage{position:sticky;top:0;height:100vh;overflow:hidden}
+.kit__stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.8}
+.kit__stage canvas{position:absolute;inset:0;width:100%;height:100%}
+.kit__stage::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,5,3,.35),transparent 35%,rgba(7,5,3,.75));pointer-events:none}
+.kit__stagecap{position:absolute;z-index:3;left:3em;bottom:3em;right:3em}
+.kit__stagecap h1{font-family:var(--display);font-weight:900;text-transform:uppercase;line-height:.95;font-size:4.6em;color:var(--sand)}
+.kit__stagecap h1 span{color:var(--gold)}
+.kit__stagecap p{color:var(--white-soft);font-weight:300;margin-top:.8em;max-width:30em}
+.kit__panel{background:var(--panel);padding:6.5em 2.6em 3em;overflow-y:auto}
+.kit__panel h2{font-family:var(--mono);font-size:.8em;text-transform:uppercase;letter-spacing:.12em;color:var(--taupe);margin-bottom:1.4em}
+.step{border-top:1px solid var(--hairline);padding:1.6em 0}
+.step__t{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:1.6em;color:var(--sand);margin-bottom:1em}
+.step__t b{color:var(--gold);font-weight:900;margin-right:.5em}
+.chips{display:flex;flex-wrap:wrap;gap:.55em}
+.chips button{font-family:var(--mono);font-size:.72em;text-transform:uppercase;letter-spacing:.06em;border:1px solid var(--hairline);background:transparent;color:var(--white-soft);border-radius:9999px;padding:.6em 1.1em;cursor:pointer;transition:all var(--duration-normal) var(--ease-default)}
+.chips button:hover{border-color:var(--gold);color:var(--sand)}
+.chips button.on{background:var(--gold);border-color:var(--gold);color:var(--ink);font-weight:600}
+.kit input[type=text],.kit input[type=date],.kit input[type=tel],.kit input[type=email],.kit textarea{width:100%;background:#0D0A07;border:1px dashed var(--hairline);border-radius:.5em;color:var(--sand);font-family:var(--body);font-size:1.05em;padding:.75em 1em;outline:none;margin-bottom:.8em}
+.kit input:focus,.kit textarea:focus{border-color:var(--gold);border-style:solid}
+.kit label.ck{display:flex;gap:.7em;align-items:center;color:var(--white-soft);font-weight:300;padding:.35em 0;cursor:pointer}
+.kit label.ck input{accent-color:var(--gold);width:1.1em;height:1.1em}
+.swatches{display:flex;gap:.8em}
+.swatches button{width:3em;height:3em;border-radius:9999px;border:2px solid var(--hairline);cursor:pointer}
+.swatches button.on{border-color:var(--sand);transform:scale(1.1)}
+.kit__review{background:#0D0A07;border:1px solid var(--hairline);border-radius:.8em;padding:1.6em;margin-top:1.6em}
+.kit__review dl{display:grid;grid-template-columns:auto 1fr;gap:.45em 1.2em;font-size:.95em}
+.kit__review dt{font-family:var(--mono);font-size:.72em;text-transform:uppercase;letter-spacing:.08em;color:var(--taupe);padding-top:.25em}
+.kit__review dd{color:var(--sand);font-weight:300}
+.kit__actions{display:flex;flex-wrap:wrap;gap:.8em;margin-top:1.6em}
+.kit__note{font-family:var(--mono);font-size:.72em;color:var(--taupe);text-transform:uppercase;letter-spacing:.07em;margin-top:1.2em;line-height:1.8}
+.kit__bar{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;justify-content:space-between;align-items:center;padding:1.2em 2.6em;background:linear-gradient(180deg,rgba(7,5,3,.85),transparent)}
+@media (max-width:991px){.kit{grid-template-columns:52% 48%}}
+@media (max-width:767px){.kit{grid-template-columns:1fr}.kit__stage{position:relative;height:40vh}.kit__panel{padding-top:2.5em}}
