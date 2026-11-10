@@ -12,7 +12,7 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const clamp01 = v => clamp(v, 0, 1);
 const lerp = (a, b, t) => a + (b - a) * t;
 const sstep = (a, b, v) => { const t = clamp01((v - a) / (b - a)); return t * t * (3 - 2 * t); };
-const Ge = v => v; // spec easing for card windows ≈ smoothstep in this build
+// Spec phase mapper Ge() is defined next to `land` below (Annex B §8.2).
 
 const section = $('#court');
 const canvas = $('#courtCanvas');
@@ -41,6 +41,8 @@ let cards = [], headGroup = null, headMats = [];
 let spot, spotTarget, hemi, amb, point, rim, frontDir, coneMats = [], poolMat, poolSprite;
 let F = 0, Ro = 0, capP = 0;         // flight / card-ring / caption progress
 let land = 0.5, Tt = 1, anchorDt = new THREE.Vector3(0, 2, 3);
+const Ge = v => land + (1 - land) * v; // local phase → global progress (spec §8.2)
+const Te = (m, k) => { const s = Math.sin((m + 1) * (12.9898 + k * 7.233)) * 43758.5453; return (s - Math.floor(s)) - 0.5; }; // spec per-card pseudo-random (§8.5)
 let introK = 0, introStart = 0, started = false, failed = false;
 let inView = false, lastTs = 0, idleT = 0;
 
@@ -214,7 +216,7 @@ function init() {
     const mesh = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.3333), mat);
     mesh.visible = false;
     scene.add(mesh);
-    cards.push({ mesh, mat, tex: cardTex[i], tinted: false });
+    cards.push({ mesh, mat, tex: cardTex[i], tinted: false, eo: new THREE.Vector3(Te(i, 0) * 0.26, Te(i, 1) * 0.22, Te(i, 2) * 0.26) });
   }
   coverAnchor();
   buildHead();
@@ -256,13 +258,16 @@ function bindScroll() {
   gsap.registerPlugin(ScrollTrigger);
   ScrollTrigger.create({
     trigger: section, start: 'top bottom', end: 'bottom top', scrub: true,
-    onUpdate: self => { Ro = self.progress; }
+    // Spec §8.2: Ro.p is a fromTo 0 → 1 + vh/courtHeight, not a clamped 0–1.
+    onUpdate: self => { Ro = self.progress * (1 + innerHeight / Math.max(1, section.offsetHeight)); }
   });
   ScrollTrigger.create({
-    trigger: section, start: 'top top', end: 'bottom bottom', scrub: 0.6,
-    onUpdate: self => { F = self.progress; },
-    onEnter: () => revealHead(),
-    onEnterBack: () => revealHead()
+    trigger: section, start: 'top bottom', end: 'bottom bottom', scrub: 0.6,
+    onUpdate: self => { F = self.progress; }
+  });
+  ScrollTrigger.create({
+    trigger: section, start: 'top top', once: true,
+    onEnter: () => revealHead()
   });
   ScrollTrigger.create({
     trigger: caption, start: 'top 28%', end: 'top 40%', scrub: true,
@@ -351,25 +356,27 @@ function frame(ts) {
   scene.userData.fanMat.opacity = 0.10 * V;
   // ---- cards on the helix ----
   const count = st.cardCount;
-  const Me = Math.max(0, (Ro - land) / (1 - land));
-  const Kt = sstep(land, Math.max(land + 0.001, Ge(0.05) + land), F);
+  const Me = Math.max(0, (Ro - land) / Math.max(0.05, 1 - land));
+  const Kt = sstep(land, Ge(0.05), F);
   cards.forEach((c, i) => {
     if (i >= count) { c.mesh.visible = false; return; }
-    if (!c.tinted && c.tex.image) { c.mat.map = c.tex; c.mat.color.set(0xffffff); c.tinted = true; c.mat.needsUpdate = true; }
+    if (!c.tinted && c.tex.image) { c.mat.map = c.tex; c.tinted = true; c.mat.needsUpdate = true; } // colour stays spec 0xE6DCCB
     const phase = ((i / count) + Me) % 1;
     const yH = -0.28 + phase * 1.59;
     const ang = -Math.PI / 4 - phase * Math.PI * 3;
     const flareK = 1 - 0.1 * (yH + 0.28);
     const hx = Math.cos(ang) * 0.59 * flareK;
     const hz = Math.sin(ang) * 0.49 * flareK - 0.05;
-    const birth = sstep(0.07 + i / count * 0.2, 0.07 + i / count * 0.2 + 0.1, F);
+    const D0 = 0.07 + (i / count) * 0.2;
+    const birth = sstep(Ge(D0), Ge(D0 + 0.1), F);
     let ct = Kt * birth * sstep(0, 0.1, phase) * (1 - sstep(0.84, 1, phase));
     const centre = carrier.position.clone();
     centre.y += 0.3 * lerp(Tt, st.sockScale, ie2);
-    const eo = new THREE.Vector3(0, -0.5, 0.8);
-    const helix = new THREE.Vector3(hx, yH, hz);
-    const He = birth;
-    c.mesh.position.copy(centre).addScaledVector(eo, 1 - He).addScaledVector(helix, He);
+    // Helix span (-.28…1.31, midpoint ≈ .5) is centred on the model so the
+    // ring distributes above AND below centre instead of stacking overhead.
+    const helix = new THREE.Vector3(hx, yH - 0.5, hz);
+    const He = 1 - (1 - birth) * (1 - birth);
+    c.mesh.position.copy(centre).addScaledVector(c.eo, 1 - He).addScaledVector(helix, He);
     c.mesh.scale.setScalar(Math.max(st.cardScale * ct, 0.0001));
     c.mesh.visible = ct > 0.01;
     if (c.mesh.visible) {

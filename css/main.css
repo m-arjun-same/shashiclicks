@@ -237,7 +237,7 @@ html.is-intro .snd{opacity:0;pointer-events:none}
 .court__vignette{position:fixed;inset:0;z-index:3;pointer-events:none;opacity:0;background:radial-gradient(60% 50% at 50% 46%,transparent 55%,rgba(11,10,8,.65) 100%)}
 .court__lantern{position:fixed;inset:0;z-index:4;pointer-events:none;opacity:0;background:radial-gradient(11.25em circle at var(--lx,50%) var(--ly,40%),rgba(201,111,74,.16),transparent 70%)}
 .court__track{position:relative;height:100%}
-.court__caption{position:absolute;inset:0;z-index:5;display:flex;align-items:flex-end;justify-content:center;padding-bottom:16vh;opacity:0;text-align:center}
+.court__caption{position:absolute;inset:0;z-index:0;display:flex;align-items:flex-end;justify-content:center;padding-bottom:16vh;opacity:0;text-align:center}
 .court__title{font-family:var(--display);font-weight:900;font-size:clamp(2.5em,6vw,5.75em);line-height:.9;text-transform:uppercase;color:var(--sand)}
 .court.is-static .court__canvas,.court.is-static .court__vignette,.court.is-static .court__lantern{display:none}
 .court.is-static .court__caption{opacity:1}
@@ -379,8 +379,8 @@ html.trans-var .qq__bridge{display:flex}
 .rat__title i{color:var(--terra);--edge:var(--ink);--final:var(--terra);font-style:normal}
 .rat__packs{position:absolute;inset:0;z-index:4;perspective:900px}
 .rat__pack{position:absolute;width:17em;margin-left:-8.5em;will-change:transform}
-.rat__pack--wht{left:35.3%;bottom:auto;top:19vh;transform:rotate(-2.5deg)}
-.rat__pack--blk{left:65.2%;bottom:auto;top:12.5vh;width:17em;transform:rotate(2deg)}
+.rat__pack--wht{left:35.3%;bottom:19vh;top:auto;transform:rotate(-2.5deg)}
+.rat__pack--blk{left:65.2%;bottom:12.5vh;top:auto;width:17.1em;transform:rotate(2deg)}
 .rat__pack-drop,.rat__pack-float,.rat__pack-tilt{will-change:transform;transform-style:preserve-3d}
 .pack-sleeve{display:block;padding:.55em;background:rgba(246,240,226,.55);border:1px solid rgba(33,26,18,.14);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
 .pack-sleeve img{display:block;width:100%;height:auto;filter:brightness(1.07) contrast(1.05)}
@@ -519,7 +519,7 @@ html.is-intro .shotclock{display:none}
   .hero__player-front,.hero__player-glow,.hero__h1-ghost-line{display:none}
   .hero__poster img,.hero__floor-strip{object-position:66% 50%}
   .hero__seam:before{height:18%}
-  .hero__h1{font-size:clamp(3.25em,17.5vw,5.5em);line-height:.88}
+  .hero__h1{font-size:clamp(3.25em,17.5vw,5.5em);line-height:.88;margin-top:0;padding:0 calc(var(--size-font)*1.25)}
   .hero__h1-line--giant{position:static;font-size:inherit;white-space:normal}
   .hero__copy{justify-content:flex-end}
   .hero__main{flex:none;height:auto}
