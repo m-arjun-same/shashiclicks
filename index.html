@@ -1,246 +1,332 @@
 <!DOCTYPE html>
-<html lang="en" class="is-intro">
+<html lang="en" class="is-intro is-prepaint">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ShashiClicks — Professional Photographer in Hyderabad</title>
 <meta name="description" content="ShashiClicks — a premier photography studio in Hyderabad. Maternity, newborn, kids, wedding and family photography. We frame your story beautifully.">
 <meta name="theme-color" content="#161310">
-<link rel="stylesheet" href="css/main.css?v=8">
+<link rel="preload" href="assets/fonts/FKScreamer-Black.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/GeistMono-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/main.css?v=11">
 <script type="application/ld+json">
 {"@context":"https://schema.org","type":"LocalBusiness","name":"ShashiClicks","email":"contact@shashiclicks.com","telephone":"+91 7032857077","address":{"@type":"PostalAddress","streetAddress":"3rd Floor, Hifly Capital, Plot 187, Manjeera Pipeline Rd, Hafeezpet, Miyapur","addressLocality":"Hyderabad","postalCode":"500049","addressCountry":"IN"},"aggregateRating":{"@type":"AggregateRating","ratingValue":"4.9","bestRating":"5"}}
 </script>
 </head>
 <body>
+<!-- Skip links (reference: skip bar, first in DOM) -->
+<div class="skip">
+  <a class="skip__link" href="#court">Skip to content</a>
+  <button class="skip__link" type="button" data-motion-toggle aria-pressed="false">Pause motion</button>
+</div>
+
+<!-- Page-transition door -->
+<div class="pt-door" data-pt-door aria-hidden="true">
+  <div class="pt-door__light" data-pt-light></div>
+  <div class="pt-door__leaf pt-door__leaf--a" data-pt-leaf="a"><span class="pt-door__bar"></span><span class="pt-door__rim" data-pt-rim></span></div>
+  <div class="pt-door__leaf pt-door__leaf--b" data-pt-leaf="b"><span class="pt-door__bar"></span><span class="pt-door__rim" data-pt-rim></span></div>
+  <div class="pt-door__flood" data-pt-flood></div>
+  <p class="pt-door__label" data-pt-label><span class="pt-door__name" data-pt-name>Book a Shoot</span></p>
+</div>
+
 <!-- Loader -->
-<div class="loader" id="loader" aria-hidden="true">
-  <div class="loader-num" id="loaderNum">0</div>
-  <div class="loader__word">SHASHI<span>CLICKS</span></div>
-  <div class="loader__pct"><span id="loaderPct">0</span>% — LOADING THE STUDIO</div>
-  <div class="loader__bar"><i id="loaderBar"></i></div>
-  <button class="loader__skip" id="loaderSkip" type="button">Skip →</button>
+<div id="loader" class="loader loader--live" aria-hidden="true">
+  <div class="loader__blocks"></div>
+  <div class="loader__ui">
+    <span class="loader__label"><svg class="loader__mark" viewBox="0 0 40 28" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="36" height="20" rx="2"/><circle cx="20" cy="16" r="6"/><path d="M14 6l3-4h6l3 4"/></svg>ShashiClicks®</span>
+    <span class="loader__pct">0%</span>
+    <span class="loader__bar"><i></i></span>
+  </div>
+  <button id="skip" class="loader__skip" type="button">[ Skip ]</button>
 </div>
+<div class="loader-num" id="loaderNum" aria-hidden="true"><svg class="loader-num__svg" id="loaderNumSvg" preserveAspectRatio="none"><rect id="loaderNumBg" fill="#000"></rect><g id="loaderNumG"></g></svg></div>
 
-<div class="trx" id="trx" aria-hidden="true"></div>
-
-<!-- Shot-clock HUD (fixed, like the reference) -->
-<div class="hud" id="hud" aria-hidden="true">
-  <div class="hud__num" id="hudNum">24</div>
-  <div class="hud__meta"><span id="hudLabel">THE STUDIO</span><span id="hudFrac">01 / 07</span></div>
-  <div class="hud__play">▶</div>
-  <div class="hud__ticks" id="hudTicks"></div>
-</div>
-
-<!-- Top bar: logo + one solid button, as the reference -->
+<!-- Top bar -->
 <header class="bar" id="bar">
-  <a class="bar__logo" href="#hero">SHASHI<b>CLICKS</b>®</a>
-  <a class="btn btn--cream" href="kit.html">Book a Shoot <span class="btn__arr">→</span></a>
+  <a class="bar__logo" href="#hero" aria-label="ShashiClicks — home">SHASHI<b>CLICKS</b>®</a>
+  <a class="btn btn--icon btn--light bar__cta" href="kit.html" data-pt-link data-pt-name="Book a Shoot">
+    <span class="btn__bg"><span class="btn__bg-hover"></span></span>
+    <span class="btn__inner"><span class="btn__mask"><span class="btn__text">Book a Shoot</span></span><span class="btn__icon-wrap"><span class="btn__icon-bg"></span><span class="btn__icon-mask"><span class="btn__icon-list"><svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h15M13 6l6 6-6 6"/></svg><svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h15M13 6l6 6-6 6"/></svg><svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span></span></span></span>
+  </a>
 </header>
+<button id="snd" class="snd snd--off" type="button" data-snd aria-pressed="false" aria-label="Turn sound on">
+  <span class="snd__ring"><span class="snd__eq"><i></i><i></i><i></i><i></i></span></span><span class="snd__div"></span>
+</button>
 
-<main id="site">
-  <!-- Hero: three layers, as the reference — bg photo / photo-filled headline / subject cutout -->
-  <section class="hero" id="hero">
-    <div class="hero__bg"><img src="assets/img/hero.webp" alt="Maternity portrait by ShashiClicks in a green park — a partner kneeling to kiss the mother's bump" fetchpriority="high"></div>
-    <h1 class="hero__fill" id="heroH1"><span class="w">We Frame</span> <span class="w">Your</span> <span class="w">Story</span></h1>
-    <img class="hero__fg" src="assets/img/hero-cutout.png" alt="" aria-hidden="true">
-    <div class="hero__scrim" aria-hidden="true"></div>
-    <div class="hero__inner">
-      <div class="hero__h2">Beautifully</div>
-      <p class="hero__sub"><b>ShashiClicks®</b> — a premier photography studio in Hyderabad. We don't just take pictures. We create memories that your family will cherish for generations.</p>
-      <div class="hero__btns">
-        <a class="btn btn--cream" href="kit.html">Book a Shoot <span class="btn__arr">→</span></a>
-        <a class="btn btn--ghost" href="#tech">Explore the Specialities</a>
-      </div>
-    </div>
-    <div class="hero__ticker"><span class="dot"></span><span id="tickerText">We don't just take pictures.</span></div>
-    <div class="hero__reticle" aria-hidden="true">
-      <span class="hr__lab hr__lab--t">FRM · 01</span>
-      <svg class="hr__ring" viewBox="0 0 100 100" fill="none" stroke="currentColor">
-        <circle cx="50" cy="50" r="47" stroke-width=".8" opacity=".55"/>
-        <circle cx="50" cy="50" r="31" stroke-width=".8" opacity=".8"/>
-        <path d="M50 3v14M50 83v14M3 50h14M83 50h14" stroke-width=".8" opacity=".55"/>
-        <rect x="38" y="43" width="24" height="15" rx="2" stroke-width="1.1"/>
-        <circle cx="50" cy="50.5" r="4.6" stroke-width="1.1"/>
-        <path d="M44 43l3-4h6l3 4" stroke-width="1.1"/>
-      </svg>
-      <span class="hr__lab">X 17.44 · Y 78.37</span>
-      <span class="hr__lab hr__lab--b">Studio / 01</span>
-    </div>
-    <div class="hero__scroll">Scroll to explore</div>
-  </section>
+<div class="site">
+<main class="site__main" id="main">
 
-  <!-- Court → The Journey (WebGL helix) -->
-  <section class="court" id="court">
-    <div class="court__stage">
-      <div class="court__big" id="courtBig" aria-hidden="true">We Create<br>Memories.</div>
-      <div class="court__rays" aria-hidden="true"></div>
-      <canvas id="journeyCanvas" aria-label="A scrolling journey through ShashiClicks photographs — maternity, newborn, kids, wedding, cake smash, events, fashion, toddlers and pre-wedding shoots"></canvas>
-      <canvas id="journeyGL" aria-hidden="true"></canvas>
-      <img class="court__poster" id="courtPoster" src="assets/img/hero.webp" alt="" aria-hidden="true">
-      <div class="court__glow" aria-hidden="true"></div>
+  <!-- ============ HERO ============ -->
+  <section id="hero" tabindex="-1" class="hero hero--h1a hero--h1b hero--h1c hero--h1front hero--pcb">
+    <div class="hero__media">
+      <img class="hero__poster" src="assets/img/hero.webp" alt="Maternity portrait by ShashiClicks in a green park — a partner kneeling to kiss the mother's bump" fetchpriority="high">
+      <img class="hero__poster hero__poster--first" src="assets/img/hero.webp" alt="" aria-hidden="true">
+      <canvas class="hero__canvas" id="heroCanvas"></canvas>
     </div>
-  </section>
-
-  <!-- Tech → Specialities (pinned stage: headline, then cards glide) -->
-  <section class="tech" id="tech">
-    <div class="tech__pin" id="techPin">
-      <div class="tech__intro" id="techIntro">
-        <h2><span class="cf">One Studio.</span><br><span class="cf">Four Signature</span><br><span class="cf">Specialities.</span></h2>
-      </div>
-      <div class="tech__intro-meta" id="techMeta">Twelve years behind the lens<br>Every frame. Every memory.</div>
-      <article class="tech__panel">
-        <div class="tcard2">
-          <img class="bg" src="assets/img/tech-maternity.webp" alt="Maternity portrait session by ShashiClicks" loading="lazy">
-          <div class="tcard2__info">
-            <div class="tcard2__hud"><span>Glow</span><span>01 / 04</span></div>
-            <h3>Maternity</h3>
-            <p>The beauty of motherhood — best at 30–36 weeks; luxury gowns and props provided at the studio.</p>
+    <img class="hero__player-front" src="assets/img/hero-cutout.png" alt="" aria-hidden="true">
+    <div class="hero__player-glow" aria-hidden="true"></div>
+    <img class="hero__floor-strip" src="assets/img/hero.webp" alt="" aria-hidden="true">
+    <div class="hero__seam" aria-hidden="true"></div>
+    <div class="hero__copy">
+      <h1 class="hero__h1" data-fill="ghost" data-fit="phone"><span class="hero__h1-line hero__h1-line--giant"><span class="cf-seg">We Frame Your Story</span></span></h1>
+      <div class="hero__main">
+        <div class="hero__headline">
+          <p class="hero__tagline"><span class="hero__h1-line"><span class="cf-seg">Beautifully</span></span></p>
+          <p class="hero__para"><b>ShashiClicks®</b> — a premier photography studio in Hyderabad. We don't just take pictures. We create memories that your family will cherish for generations.</p>
+          <div class="hero__cta-row">
+            <a class="btn btn--icon btn--light" href="kit.html" data-pt-link data-pt-name="Book a Shoot">
+              <span class="btn__bg"><span class="btn__bg-hover"></span></span>
+              <span class="btn__inner"><span class="btn__mask"><span class="btn__text">Book a Shoot</span></span><span class="btn__icon-wrap"><span class="btn__icon-bg"></span><span class="btn__icon-mask"><span class="btn__icon-list"><svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h15M13 6l6 6-6 6"/></svg><svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h15M13 6l6 6-6 6"/></svg><svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span></span></span></span>
+            </a>
+            <a class="btn btn--icon btn--ghost" href="#tech">
+              <span class="btn__bg"><span class="btn__bg-hover"></span></span>
+              <span class="btn__inner"><span class="btn__mask"><span class="btn__text">Explore the Specialities</span></span><span class="btn__icon-wrap"><span class="btn__icon-bg"></span><span class="btn__icon-mask"><span class="btn__icon-list"><svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h15M13 6l6 6-6 6"/></svg><svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h15M13 6l6 6-6 6"/></svg><svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span></span></span></span>
+            </a>
           </div>
         </div>
-      </article>
-      <article class="tech__panel">
-        <div class="tcard2">
-          <img class="bg" src="assets/img/tech-newborn.webp" alt="Newborn baby portrait by ShashiClicks" loading="lazy">
-          <div class="tcard2__info">
-            <div class="tcard2__hud"><span>First Smile</span><span>02 / 04</span></div>
-            <h3>Newborn</h3>
-            <p>Great parents. Amazing shoots. Beautiful pics — and a baby whisperer on set.</p>
-          </div>
-        </div>
-      </article>
-      <article class="tech__panel">
-        <div class="tcard2">
-          <img class="bg" src="assets/img/tech-kids.webp" alt="Kids portrait by ShashiClicks" loading="lazy">
-          <div class="tcard2__info">
-            <div class="tcard2__hud"><span>First Steps</span><span>03 / 04</span></div>
-            <h3>Kids</h3>
-            <p>Infants, toddlers, siblings and cake smashes — patience first, every mood gets its frame.</p>
-          </div>
-        </div>
-      </article>
-      <article class="tech__panel">
-        <div class="tcard2">
-          <img class="bg" src="assets/img/tech-wedding.webp" alt="Wedding photograph by ShashiClicks" loading="lazy">
-          <div class="tcard2__info">
-            <div class="tcard2__hud"><span>The Vow</span><span>04 / 04</span></div>
-            <h3>Wedding</h3>
-            <p>Modern, contemporary and off-beat — plus pre &amp; post-wedding stories and events.</p>
-          </div>
-        </div>
-      </article>
+      </div>
+      <div class="hero__slogan" data-slogans aria-hidden="true">
+        <span class="hero__slogan-item hero__slogan-item--a"><span class="hero__slogan-dot"></span><span class="hero__slogan-text">We don't just take pictures.</span></span>
+        <span class="hero__slogan-item hero__slogan-item--b"><span class="hero__slogan-dot"></span><span class="hero__slogan-text">We create memories.</span></span>
+        <span class="hero__slogan-item hero__slogan-item--c"><span class="hero__slogan-dot"></span><span class="hero__slogan-text">Cherished for generations.</span></span>
+        <span class="hero__slogan-item hero__slogan-item--d"><span class="hero__slogan-dot"></span><span class="hero__slogan-text">Hyderabad · Since 2014</span></span>
+      </div>
+      <a class="hero__prod-card" data-court-anchor href="kit.html" data-pt-link data-pt-name="Book a Shoot" aria-label="Book a shoot — ShashiClicks studio card">
+        <i class="hero__pc-corner hero__pc-corner--tl" aria-hidden="true"></i>
+        <i class="hero__pc-corner hero__pc-corner--tr" aria-hidden="true"></i>
+        <i class="hero__pc-corner hero__pc-corner--bl" aria-hidden="true"></i>
+        <i class="hero__pc-corner hero__pc-corner--br" aria-hidden="true"></i>
+        <span class="hero__pc-reticle" aria-hidden="true"></span>
+        <span class="hero__pc-scan" aria-hidden="true"></span>
+        <span class="hero__pc-top" aria-hidden="true"><b>FRM·01</b></span>
+        <span class="hero__pc-coords" aria-hidden="true">X 17.44 · Y 78.37</span>
+        <svg class="hero__prod-card-icon" viewBox="0 0 48 36" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="9" width="42" height="24" rx="2"/><circle cx="24" cy="21" r="7"/><path d="M17 9l4-5h6l4 5"/></svg>
+        <span class="hero__prod-card-live" aria-hidden="true"></span>
+        <span class="hero__prod-card-tag">Studio / 01</span>
+      </a>
+      <a class="hero__learn hero__learn--v2" data-cue href="#court">
+        <span class="hero__learn-text">Scroll to explore</span>
+        <span class="hero__learn-drib" aria-hidden="true"><i class="hero__learn-ball"></i><i class="hero__learn-ghost hero__learn-ghost--1"></i><i class="hero__learn-ghost hero__learn-ghost--2"></i><i class="hero__learn-ring"></i><i class="hero__learn-floor"></i></span>
+      </a>
     </div>
   </section>
 
-  <!-- Team → Your names, framed (full-bleed pinned stage) -->
-  <section class="names" id="names">
-    <div class="names__stage">
-      <img class="names__photo" id="namesPhoto" src="assets/img/names-base.webp" alt="Sibling photograph by ShashiClicks — the frame your initials are drawn into" loading="lazy">
-      <canvas id="namesCanvas" width="1200" height="800"></canvas>
-      <h2 class="names__big">Framed.</h2>
-      <div class="names__bracket" aria-hidden="true"></div>
-      <div class="names__vert" id="namesVert">SP</div>
-      <div class="names__panel" id="namesPanel">
-        <h3>Your Initials</h3>
-        <p>Drawn into the frame, never printed on. The full name goes in; the initials stay — the way every finished ShashiClicks portrait carries its mark.</p>
-        <button class="names__cta" id="namesCta" type="button">Try with your initials <span class="btn__arr">→</span></button>
-        <div class="names__row">
-          <input id="nameInput" type="text" placeholder="e.g. Shashi Patel" autocomplete="off" aria-label="Your full name">
-          <span class="names__mono" id="namesMono">SP</span>
+  <!-- ============ COURT / JOURNEY ============ -->
+  <canvas class="court__canvas" id="courtCanvas" data-court-canvas aria-label="A scrolling journey through ShashiClicks photographs, orbiting a Canon AT-1 camera"></canvas>
+  <div class="court__vignette" data-court-vignette aria-hidden="true"></div>
+  <div class="court__lantern" data-court-lantern aria-hidden="true"></div>
+  <section class="court court--gl" id="court" data-court>
+    <div class="court__track">
+      <div class="court__caption" data-court-caption>
+        <h2 class="court__title" data-fill="dim" data-fill-trigger="#court" data-fill-start="36% top">We create memories.</h2>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TECH / SPECIALITIES ============ -->
+  <section class="qq" id="tech" data-qq data-appear="wipe">
+    <div class="qq__stage" data-stage>
+      <div class="qq__head"></div>
+      <div class="qq__strip" data-strip>
+        <div class="qq__lead"></div>
+        <div class="qq__endcap">
+          <h2 class="qq__endcap-title" data-fill="dim" data-fill-manual data-qq-title data-fit><span class="cf-seg">One studio.</span><br><b class="cf-seg">Four signature</b><br><b class="cf-seg">specialities.</b></h2>
+          <div class="qq__endcap-sub">Twelve years behind the lens<br>Hyderabad · Since 2014</div>
+        </div>
+        <article class="qq__panel" data-panel>
+          <img class="qq__img" data-pimg loading="lazy" decoding="async" src="assets/img/tech-maternity.webp" alt="Maternity portrait session by ShashiClicks">
+          <div class="qq__panelshade"></div>
+          <div class="qq__hud">
+            <div class="qq__hudrow"><span>Glow</span><span>01 / 04</span></div>
+            <h3 class="qq__name">Maternity</h3>
+            <p class="qq__claim">The beauty of motherhood — best at 30–36 weeks; luxury gowns and props provided at the studio.</p>
+          </div>
+        </article>
+        <article class="qq__panel" data-panel>
+          <img class="qq__img" data-pimg loading="lazy" decoding="async" src="assets/img/tech-newborn.webp" alt="Newborn baby portrait by ShashiClicks">
+          <div class="qq__panelshade"></div>
+          <div class="qq__hud">
+            <div class="qq__hudrow"><span>First Smile</span><span>02 / 04</span></div>
+            <h3 class="qq__name">Newborn</h3>
+            <p class="qq__claim">Great parents. Amazing shoots. Beautiful pics — and a baby whisperer on set.</p>
+          </div>
+        </article>
+        <article class="qq__panel" data-panel>
+          <img class="qq__img" data-pimg loading="lazy" decoding="async" src="assets/img/tech-kids.webp" alt="Kids portrait by ShashiClicks">
+          <div class="qq__panelshade"></div>
+          <div class="qq__hud">
+            <div class="qq__hudrow"><span>First Steps</span><span>03 / 04</span></div>
+            <h3 class="qq__name">Kids</h3>
+            <p class="qq__claim">Infants, toddlers, siblings and cake smashes — patience first, every mood gets its frame.</p>
+          </div>
+        </article>
+        <article class="qq__panel" data-panel>
+          <img class="qq__img" data-pimg loading="lazy" decoding="async" src="assets/img/tech-wedding.webp" alt="Wedding photograph by ShashiClicks">
+          <div class="qq__panelshade"></div>
+          <div class="qq__hud">
+            <div class="qq__hudrow"><span>The Vow</span><span>04 / 04</span></div>
+            <h3 class="qq__name">Wedding</h3>
+            <p class="qq__claim">Modern, contemporary and off-beat — plus pre &amp; post-wedding stories and events.</p>
+          </div>
+        </article>
+        <div class="qq__bridge">
+          <h2 class="qq__bridge-title" data-qq-title data-fit><span class="cf-seg">One studio.</span><br><b class="cf-seg">Four signature</b><br><b class="cf-seg">specialities.</b></h2>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Testimonials (giant staggered headline + vertical film cards) -->
-  <section class="testi" id="testi">
-    <div class="testi__lines" aria-hidden="true"></div>
-    <h2 class="testi__h"><span class="l1">Word from the</span><span class="l2">Families<i>.</i></span></h2>
-    <div class="testi__grid" id="testiGrid"></div>
-  </section>
-
-  <!-- Finale (light stage, 410vh sticky, −80vh overlap) -->
-  <section class="finale" id="finale">
-    <div class="finale__stage">
-      <div class="finale__kick">Hyderabad · Since 2014</div>
-      <h2 class="finale__big">Let's Create <span>Memories.</span></h2>
-      <div class="finale__pouches">
-        <figure class="pouch" data-pouch>
-          <img src="assets/img/finale-studio.webp" alt="ShashiClicks studio portrait, Hyderabad" loading="lazy">
-        </figure>
-        <figure class="pouch" data-pouch>
-          <img src="assets/img/finale-wedding.webp" alt="Wedding photograph by ShashiClicks" loading="lazy">
-        </figure>
+  <!-- ============ TEAM / YOUR NAMES, FRAMED ============ -->
+  <section class="team" id="team">
+    <h2 class="tbr-intro"><span class="tbr-intro__strip tbr-intro__strip--a" data-fill="dim">Now Booking</span><span class="tbr-intro__strip tbr-intro__strip--b" data-fill="dim">Portraits With Your Initials</span></h2>
+    <p class="tbr-intro__meta">ShashiClicks® — Hyderabad <b>Since 2014</b></p>
+    <div class="tbr-scene" id="knit">
+      <div class="tbr-scene__view tbr-scene__view--bg"><img class="is-empty" loading="lazy" decoding="async" src="assets/img/names-base.webp" alt="Sibling photograph by ShashiClicks — the studio frame"></div>
+      <div class="tbr-scene__word" data-fill="ghost" data-fill-manual data-fit><span class="cf-seg">Framed.</span><small>The Studio Mark — <b>Hyderabad</b></small></div>
+      <div class="tbr-scene__view tbr-scene__view--front">
+        <img class="is-cut" loading="lazy" decoding="async" src="assets/img/names-base.webp" alt="" aria-hidden="true">
+        <canvas class="tbr-scene__stitch" id="stitchCanvas" aria-hidden="true"></canvas>
+        <canvas class="tbr-scene__stitch-fx" id="stitchFx" aria-hidden="true"></canvas>
       </div>
-      <div class="finale__cta">
-        <a class="btn btn--dark" href="kit.html">Book a Shoot <span class="btn__arr">→</span></a>
-        <div class="finale__facts">Booking deposit <b>₹5,000</b> · adjusted against your package&ensp;—&ensp;Additional edited photo <b>₹600</b> each</div>
+      <div class="tbr-scene__spine" id="knitSpine" aria-hidden="true">SHASHI PATEL</div>
+      <svg class="tbr-scene__leader" id="knitLeader" aria-hidden="true"><path id="leaderPath" d=""/><circle id="leaderDot" r="4" cx="-10" cy="-10"/></svg>
+      <div class="tbr-scene__card" id="knitCard">
+        <i class="tbr-scene__corner tbr-scene__corner--tl"></i><i class="tbr-scene__corner tbr-scene__corner--tr"></i><i class="tbr-scene__corner tbr-scene__corner--bl"></i><i class="tbr-scene__corner tbr-scene__corner--br"></i>
+        <i class="tbr-scene__edge tbr-scene__edge--t"></i><i class="tbr-scene__edge tbr-scene__edge--r"></i><i class="tbr-scene__edge tbr-scene__edge--b"></i><i class="tbr-scene__edge tbr-scene__edge--l"></i>
+        <div class="tbr-scene__panel">
+          <p class="tbr-scene__eyebrow"><span class="tbr-scene__live"></span>The Studio Mark</p>
+          <h3 class="tbr-scene__h">Your Initials</h3>
+          <p class="tbr-scene__p">Drawn into the frame, never printed on. The full name goes in; the initials stay — the way every finished ShashiClicks portrait carries its mark.</p>
+          <div class="tbr-scene__cta">
+            <button class="btn btn--icon btn--light" id="namesCta" type="button">
+              <span class="btn__bg"><span class="btn__bg-hover"></span></span>
+              <span class="btn__inner"><span class="btn__mask"><span class="btn__text">Try with your initials</span></span><span class="btn__icon-wrap"><span class="btn__icon-bg"></span><span class="btn__icon-mask"><span class="btn__icon-list"><svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h15M13 6l6 6-6 6"/></svg><svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h15M13 6l6 6-6 6"/></svg><svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span></span></span></span>
+            </button>
+            <div class="tbr-scene__row" id="namesRow" hidden>
+              <input id="nameInput" type="text" placeholder="Your full name" autocomplete="off" aria-label="Your full name">
+              <span class="tbr-scene__mono" id="namesMono">SP</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- Dusk / founders (exact 100vh slot on the dusk gradient) -->
-  <section class="dusk" id="founders">
-    <h2>The Founders</h2>
-    <div class="dusk__grid">
-      <article class="founder">
-        <h3>Shashi Patel</h3>
-        <div class="founder__role">Founder — NIT Raipur</div>
-        <p>“I am Shashi — an NITian by qualification, an artist at heart, and the founder of ShashiClicks®. My love affair with photography began in childhood with a Kodak reel camera and followed me through my engineering days at NIT Raipur. Realizing that freezing moments was my true calling, I chose passion over a corporate desk. For me, every single click isn't just a service; it's a timeless memory.”</p>
-        <p class="founder__line">Our vision — “To click every shot as our favourite for life time!”</p>
-      </article>
-      <article class="founder">
-        <h3>Neelam Patel</h3>
-        <div class="founder__role">Co-Founder &amp; Studio Manager</div>
-        <p>An engineer by profession and photographer by passion, with over 9 years' experience in the professional photography industry. Winner of the Telangana State Photography Award and corporate &amp; national level awards. Her job is primarily client care and communications — if you call the studio phone, she's who you'll speak with. Clients call her the “Newborn Whisperer”.</p>
-        <p class="founder__line">Our mission — “To capture stories in the form of images, so you can look back years from today and relive that moment in time.”</p>
-      </article>
+  <!-- ============ TESTIMONIALS ============ -->
+  <section class="ttl" id="testimonials">
+    <div class="ttl__wall" aria-hidden="true"></div>
+    <div class="ttl__stage">
+      <h2 class="ttl__head" data-fill="dim" data-fill-manual><span class="ttl__line ttl__line--1"><span class="ttl__line-in"><span class="cf-seg">Word</span></span></span><span class="ttl__line ttl__line--2"><span class="ttl__line-in"><span class="cf-seg">From the</span></span></span><span class="ttl__line ttl__line--3"><span class="ttl__line-in"><span class="cf-seg">Families<i>.</i></span></span></span></h2>
+      <div class="ttl__card ttl__card--west" data-player="jenny" role="button" tabindex="0" aria-label="Watch the newborn film and read the full review from Jenny Lakra">
+        <span class="ttl__sr">Play testimonial film:</span>
+        <div class="ttl__frame"><img src="assets/img/film-newborn-b.jpg" alt="Still from a ShashiClicks newborn film"></div>
+        <div class="hud2" aria-hidden="true">
+          <span class="hud2__dot hud2__dot--tl"></span><span class="hud2__dot hud2__dot--tr"></span><span class="hud2__dot hud2__dot--bl"></span><span class="hud2__dot hud2__dot--br"></span>
+          <span class="hud2__edge hud2__edge--t"></span><span class="hud2__edge hud2__edge--b"></span><span class="hud2__edge hud2__edge--l"></span><span class="hud2__edge hud2__edge--r"></span>
+          <span class="hud2__top"><span class="hud2__rec"><i></i>Rec</span><span data-tc>00:00:00</span></span>
+          <span class="hud2__bot"><span>Studio Film</span><span>9:16</span></span>
+        </div>
+        <p class="ttl__credit"><b>Jenny Lakra</b>Newborn shoot client</p>
+      </div>
+      <div class="ttl__quote-slot ttl__quote-slot--west"><p class="q1">All I can say is <i>WOW!</i> …the most beautiful newborn photos I've ever seen.</p></div>
+      <div class="ttl__card ttl__card--gaffney" data-player="jinith" role="button" tabindex="0" aria-label="Watch the newborn film and read the full review from Jinith Rs">
+        <span class="ttl__sr">Play testimonial film:</span>
+        <div class="ttl__frame"><img src="assets/img/film-newborn-a.jpg" alt="Still from a ShashiClicks newborn film"></div>
+        <div class="hud2" aria-hidden="true">
+          <span class="hud2__dot hud2__dot--tl"></span><span class="hud2__dot hud2__dot--tr"></span><span class="hud2__dot hud2__dot--bl"></span><span class="hud2__dot hud2__dot--br"></span>
+          <span class="hud2__edge hud2__edge--t"></span><span class="hud2__edge hud2__edge--b"></span><span class="hud2__edge hud2__edge--l"></span><span class="hud2__edge hud2__edge--r"></span>
+          <span class="hud2__top"><span class="hud2__rec"><i></i>Rec</span><span data-tc>00:00:00</span></span>
+          <span class="hud2__bot"><span>Studio Film</span><span>9:16</span></span>
+        </div>
+        <p class="ttl__credit"><b>Jinith Rs</b>Lead Software Engineer · <i>S&amp;P Global</i></p>
+      </div>
+      <div class="ttl__quote-slot ttl__quote-slot--gaffney"><p class="q1">…the photos turned out to be nothing less than <i>magic!!</i></p></div>
+    </div>
+  </section>
+  <div id="ttl-cursor" class="ttl__cursor" aria-hidden="true"><i></i>Watch the film</div>
+  <div id="lb" class="lb" role="dialog" aria-modal="true" aria-label="Testimonial film">
+    <div class="lb__stage">
+      <div class="lb__top"><b id="lbName"></b><span class="lb__time" id="lbTime"></span></div>
+      <div class="lb__media" id="lbMedia"></div>
+      <p class="lb__cap" id="lbCap"></p>
+      <button class="lb__close" id="lbClose" type="button" aria-label="Close">✕</button>
+    </div>
+  </div>
+
+  <!-- ============ FINALE ============ -->
+  <section class="rat" id="finale">
+    <div class="rat__stage">
+      <span class="rat__shade" aria-hidden="true"></span>
+      <div class="rat__head">
+        <p class="rat__kicker">Hyderabad · <b>Since 2014</b></p>
+        <h2 class="rat__title" data-fill="dim" data-fill-manual><span class="cf-seg">Let's Create</span> <i class="cf-seg">Memories.</i></h2>
+      </div>
+      <div class="rat__packs">
+        <div class="rat__pack rat__pack--wht">
+          <div class="rat__pack-drop" data-drop><div class="rat__pack-float" data-float><div class="rat__pack-tilt">
+            <span class="pack-sleeve"><img src="assets/img/finale-studio.webp" alt="ShashiClicks studio portrait, Hyderabad" loading="lazy"></span>
+            <span class="rat__pack-light" style="--bag:url(../assets/img/finale-studio.webp)" aria-hidden="true"></span>
+          </div></div></div>
+          <span class="rat__pack-shadow" aria-hidden="true"></span>
+        </div>
+        <div class="rat__pack rat__pack--blk">
+          <div class="rat__pack-drop" data-drop><div class="rat__pack-float" data-float><div class="rat__pack-tilt">
+            <span class="pack-sleeve"><img src="assets/img/finale-wedding.webp" alt="Wedding photograph by ShashiClicks" loading="lazy"></span>
+            <span class="rat__pack-light" style="--bag:url(../assets/img/finale-wedding.webp)" aria-hidden="true"></span>
+          </div></div></div>
+          <span class="rat__pack-shadow" aria-hidden="true"></span>
+        </div>
+      </div>
+      <div class="rat__cta" data-cta>
+        <a class="btn btn--icon" href="kit.html" data-pt-link data-pt-name="Book a Shoot">
+          <span class="btn__bg"><span class="btn__bg-hover"></span></span>
+          <span class="btn__inner"><span class="btn__mask"><span class="btn__text">Book a Shoot</span></span><span class="btn__icon-wrap"><span class="btn__icon-bg"></span><span class="btn__icon-mask"><span class="btn__icon-list"><svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h15M13 6l6 6-6 6"/></svg><svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h15M13 6l6 6-6 6"/></svg><svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span></span></span></span>
+        </a>
+      </div>
     </div>
   </section>
 
-  <!-- Footer (full-bleed photo, centred tagline, one mono link row) -->
+  <!-- ============ DUSK (empty light transition, as the reference) ============ -->
+  <section class="dusk" id="dusk" aria-hidden="true"><span class="dusk__sun"></span></section>
+
+  <!-- ============ FOOTER ============ -->
   <footer class="foot" id="footer">
-    <div class="foot__slides" aria-hidden="true">
-      <img src="assets/img/foot1.webp" alt="" loading="lazy">
-      <img src="assets/img/foot2.webp" alt="" loading="lazy">
-      <img src="assets/img/foot3.webp" alt="" loading="lazy">
+    <div class="foot__media" aria-hidden="true">
+      <img class="foot__slide is-on" src="assets/img/foot1.webp" alt="">
+      <img class="foot__slide" src="assets/img/foot2.webp" alt="" loading="lazy">
+      <img class="foot__slide" src="assets/img/foot3.webp" alt="" loading="lazy">
     </div>
-    <div class="foot__inner">
-      <div class="foot__tag">We Create <span>Memories.</span></div>
-      <img class="foot__badge" src="assets/img/badge-tbr.webp" alt="ThreeBestRated Top 3 Photographers in Hyderabad 2026 badge">
-      <nav class="foot__row">
-        <a href="kit.html">Book a Shoot</a><a href="faq.html">FAQ</a>
-        <a href="tel:+917032857077">+91 70328 57077</a>
-        <a href="https://wa.me/917032857077" target="_blank" rel="noopener">WhatsApp</a>
-        <a href="mailto:contact@shashiclicks.com">Email</a>
-        <a href="https://www.instagram.com/shashiclicks/" target="_blank" rel="noopener">Instagram</a>
-        <a href="https://www.youtube.com/@Shashiclicks" target="_blank" rel="noopener">YouTube</a>
-        <a href="https://www.facebook.com/shashiclicks" target="_blank" rel="noopener">Facebook</a>
-      </nav>
+    <span class="foot__grain" aria-hidden="true"></span>
+    <div class="foot__content">
+      <p class="foot__slogan" data-fill="dim"><span class="cf-seg">We Create</span><br><i class="cf-seg">Memories.</i></p>
+    </div>
+    <div class="foot__bar">
       <div class="foot__legal">
-        <span>© 2014–2026 ShashiClicks® Pvt. Ltd.</span>
-        <span>3rd Floor, Hifly Capital, Plot 187, Manjeera Pipeline Rd, Hafeezpet, Miyapur, Hyderabad 500049</span>
-        <span>By prior appointment only</span>
+        <p class="foot__copy">© 2026 ShashiClicks®</p>
+        <a class="foot__sign" href="faq.html" aria-label="ShashiClicks — Top 3 Photographers in Hyderabad, ThreeBestRated 2026"><img class="foot__sign-img" src="assets/img/badge-tbr.webp" alt="ThreeBestRated — Top 3 Photographers in Hyderabad 2026" loading="lazy"></a>
+        <p class="foot__founders">Shashi Patel · Neelam Patel — Founders</p>
+        <p class="foot__addr">3rd Floor, Hifly Capital, Plot 187, Manjeera Pipeline Rd, Hafeezpet, Miyapur, Hyderabad 500049 · By prior appointment only</p>
       </div>
+      <nav class="foot__nav" aria-label="Footer">
+        <button class="foot__link foot__link--btn" type="button" data-motion-toggle aria-pressed="false"><span data-motion-label>Pause motion</span></button>
+        <a class="foot__link" href="faq.html">FAQ</a>
+        <a class="foot__link" href="kit.html" data-pt-link data-pt-name="Book a Shoot">Book a Shoot</a>
+        <a class="foot__link" href="tel:+917032857077">+91 70328 57077</a>
+        <a class="foot__link foot__link--mail" href="mailto:contact@shashiclicks.com">Get in touch →</a>
+      </nav>
     </div>
   </footer>
 </main>
+</div><!-- /.site -->
 
-<!-- Testimonial lightbox: full review + real studio film -->
-<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Full testimonial">
-  <div class="lb__box">
-    <button class="lb__close" id="lbClose" type="button" aria-label="Close">✕</button>
-    <div class="lb__media" id="lbMedia"></div>
-    <blockquote id="lbQuote"></blockquote>
-    <div class="lb__who" id="lbWho"></div>
-    <div class="lb__film" id="lbFilm"></div>
-  </div>
-</div>
+<div class="trx" id="trx" aria-hidden="true"></div>
 
 <script src="vendor/gsap.min.js"></script>
 <script src="vendor/ScrollTrigger.min.js"></script>
 <script src="vendor/lenis.min.js"></script>
 <script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/":"./vendor/jsm/"}}</script>
-<script src="js/main.js?v=8"></script>
-<script type="module" src="js/journey-gl.js?v=3"></script>
+<script src="js/hero-scene.js?v=1"></script>
+<script src="js/main.js?v=11"></script>
+<script type="module" src="js/journey-gl.js?v=7"></script>
 </body>
 </html>
