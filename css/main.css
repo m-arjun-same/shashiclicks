@@ -74,10 +74,14 @@ html.is-intro .bar{opacity:0;pointer-events:none}
 .hero__bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(13,10,7,.55),rgba(13,10,7,.08) 46%,rgba(13,10,7,.5))}
 .hero__fill{position:absolute;z-index:2;top:16svh;left:0;right:0;padding:0 4rem;font-family:var(--display);font-weight:900;text-transform:uppercase;line-height:.92;font-size:11.6em;white-space:nowrap;color:var(--sand)}
 @supports ((-webkit-background-clip:text) or (background-clip:text)){
-  /* fill = the same photo at full-frame alignment, brightened — the dimmed
-     bg layer behind is what makes the letters read, as in the reference */
-  .hero__fill{background-image:url("../assets/img/hero.webp");background-size:100vw 66.7vw;background-position:50% calc(-19.3svh);-webkit-background-clip:text;background-clip:text;color:transparent;filter:brightness(1.35) saturate(1.15)}
+  /* fill = a desaturated, warmed, softened copy of the same photo at
+     full-frame alignment (assets/img/hero-fill.webp: brightness .85,
+     saturation .55, warm shift, blur 6) — the letters carry the photo at
+     near-photo brightness over the dimmed bg layer, warm and readable,
+     never acid, as in the reference */
+  .hero__fill{background-image:url("../assets/img/hero-fill.webp");background-size:100vw 66.7vw;background-position:50% calc(-19.3svh);-webkit-background-clip:text;background-clip:text;color:transparent}
 }
+.hero__scrim{display:none}
 .hero__fg{position:absolute;z-index:3;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
 .hero__inner{position:relative;z-index:4;height:100%;display:flex;flex-direction:column;justify-content:flex-start;padding:37.5svh 4em 0}
 .hero__h2{font-family:var(--display);font-weight:900;text-transform:uppercase;line-height:.95;font-size:3.1em;color:var(--gold);margin-top:.45em;text-shadow:0 2px 24px rgba(0,0,0,.35)}
@@ -99,7 +103,7 @@ html.is-intro .bar{opacity:0;pointer-events:none}
 /* ---------- Court / Journey (200vh sticky, WebGL helix) ---------- */
 .court{position:relative;height:200vh;background:var(--court)}
 .court__stage{position:sticky;top:0;height:100svh;overflow:hidden}
-.court__big{position:absolute;z-index:1;top:31%;left:0;right:0;text-align:center;font-family:var(--display);font-weight:900;text-transform:uppercase;line-height:.95;font-size:8.6em;color:var(--sand);opacity:.94;white-space:nowrap;will-change:transform}
+.court__big{position:absolute;z-index:1;top:31%;left:0;right:0;text-align:center;font-family:var(--display);font-weight:900;text-transform:uppercase;line-height:.95;font-size:11em;color:var(--sand);opacity:.94;white-space:nowrap;will-change:transform}
 .court__rays{position:absolute;z-index:3;inset:0;pointer-events:none;background:conic-gradient(from 205deg at 84% -14%,transparent 0deg,rgba(255,214,161,.30) 13deg,rgba(255,214,161,.10) 22deg,transparent 34deg,rgba(255,214,161,.16) 46deg,transparent 62deg),radial-gradient(52% 40% at 84% -6%,rgba(255,214,161,.30),rgba(255,214,161,0) 70%);mix-blend-mode:screen}
 .court canvas{position:absolute;z-index:2;inset:0;width:100%;height:100%}
 #journeyGL{z-index:2;opacity:0;transition:opacity .8s ease}
@@ -191,9 +195,9 @@ html.is-intro .bar{opacity:0;pointer-events:none}
 .finale__big{position:absolute;top:10.5%;left:50%;transform:translateX(-50%);font-family:var(--display);font-weight:900;text-transform:uppercase;line-height:.95;font-size:6.9em;text-align:center;color:var(--ink);white-space:nowrap}
 .finale__big span{color:var(--gold)}
 .finale__pouches{position:absolute;top:31%;left:0;right:0;display:flex;justify-content:center;align-items:flex-start;gap:4.5em}
-.pouch{width:21.4em;background:rgba(255,255,255,.38);border:1px solid rgba(255,255,255,.65);border-radius:.3em;padding:.85em;box-shadow:0 34px 60px rgba(30,21,9,.16);backdrop-filter:blur(6px);will-change:transform}
+.pouch{width:21.4em;background:rgba(255,255,255,.26);border:1px solid rgba(255,255,255,.7);border-radius:.2em;padding:.32em;box-shadow:0 22px 40px rgba(30,21,9,.13);backdrop-filter:blur(6px);will-change:transform}
 .pouch:nth-child(2){margin-top:4.2em}
-.pouch img{width:100%;height:21em;object-fit:cover;border-radius:.15em}
+.pouch img{width:100%;height:21em;object-fit:cover;border-radius:.08em}
 .finale__cta{position:absolute;bottom:7.5%;left:0;right:0;text-align:center}
 .finale__facts{margin-top:1.5em;font-family:var(--mono);font-size:.74em;text-transform:uppercase;letter-spacing:.07em;color:var(--taupe-deep)}
 .finale__facts b{color:var(--gold-hover);font-weight:600}
@@ -241,11 +245,11 @@ html.is-intro .bar{opacity:0;pointer-events:none}
 @media (max-width:991px){
   .bar{padding:1.2em 2em}
   .hud{display:none}
-  /* fill sampled from the photo's bright canopy band and pushed brighter,
-     so the three lines read against the dimmed scene (reference grammar) */
-  /* on mobile the subjects fill the bottom band, so the headline rides
-     above the cutout — the reference's mobile headline dominates its frame */
-  .hero__fill{top:auto;bottom:10svh;left:0;right:0;padding:0 5vw;font-size:23.5vw;line-height:.94;white-space:normal;background-size:cover;background-position:50% 8%;filter:brightness(1.6) saturate(1.25);z-index:5}
+  /* mobile: the darkened/warmed fill copy (hero-fill.webp) plus a soft dark
+     scrim under the headline block, so the three lines stay readable over
+     the subjects — the reference's mobile headline dominates its frame */
+  .hero__scrim{display:block;position:absolute;z-index:4;left:0;right:0;bottom:0;height:54svh;background:linear-gradient(180deg,rgba(7,5,3,0) 0%,rgba(7,5,3,.45) 55%,rgba(7,5,3,.75) 100%);pointer-events:none}
+  .hero__fill{top:auto;bottom:10svh;left:0;right:0;padding:0 5vw;font-size:23.5vw;line-height:.94;white-space:normal;background-size:cover;background-position:50% 8%;z-index:5}
   .hero__fill .w{display:block}
   .hero__inner{display:none}
   .hero__reticle{display:none}

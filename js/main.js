@@ -218,7 +218,7 @@ gsap.fromTo(".finale__stage",{autoAlpha:0},{autoAlpha:1,ease:"none",
   scrollTrigger:{trigger:".finale__stage",start:"top bottom",end:"top top",scrub:.4}});
 const finTl=gsap.timeline({ scrollTrigger:{ trigger:".finale__stage", start:"top bottom", end:"+=2600", scrub:.6 } });
 finTl.fromTo([".finale__kick",".finale__big"],{y:-34,opacity:0},{y:0,opacity:1,stagger:.15,duration:.5,ease:"none"},0);
-finTl.fromTo(".pouch",{y:700,rotation:i=>i?5:-6},{y:0,rotation:i=>i?2:-2.5,stagger:.25,duration:1.2,ease:"none"},1.7);
+finTl.fromTo(".pouch",{y:700,rotation:0},{y:0,rotation:0,stagger:.25,duration:1.2,ease:"none"},1.7);
 finTl.fromTo(".finale__cta",{opacity:0,y:34},{opacity:1,y:0,duration:.45,ease:"none"},2.5);
 finTl.to({},{duration:.35},2.95);
 
