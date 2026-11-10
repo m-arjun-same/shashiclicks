@@ -35,7 +35,7 @@ TESTIS.forEach((t,i)=>{
   b.innerHTML = '<span class="vcard__media" style="display:block"><img src="'+t.img+'" alt="'+t.alt+'" loading="lazy">'
     + '<span class="vcard__hud"><span><span class="rec">●</span> Rec · Cam 0'+(i+1)+'</span><span>00:0'+i+':1'+(i*3)+'</span></span>'
     + '<span class="vcard__play">▶</span>'
-    + '<span class="vcard__hud vcard__hud--bot"><span>Studio film</span><span>YouTube · 16:9</span></span></span>'
+    + '<span class="vcard__hud vcard__hud--bot"><span>Studio film</span><span>9:16 · 60fps</span></span></span>'
     + '<span class="vcard__who" style="display:block">'+t.name+'<small>'+t.role+'</small></span>';
   b.addEventListener("click",()=>openLb(t));
   grid.appendChild(b);
@@ -93,15 +93,18 @@ if(!reduced && window.Lenis){
   });
 }
 
-/* ---------- Hero: fit the giant line to the stage width (reference text-fit) ---------- */
+/* ---------- Hero: fit the giant photo-filled line to the stage width (reference text-fit) ---------- */
 const h1=document.getElementById("heroH1");
 function fitH1(){
   if(!h1) return;
   if(window.innerWidth<=991){ h1.style.fontSize=""; return; }
-  let s=9.2; h1.style.fontSize=s+"em";
-  const max=h1.parentElement.clientWidth-2;
-  let guard=30;
-  while(h1.scrollWidth>max && guard-->0){ s-=0.25; h1.style.fontSize=s+"em"; }
+  /* measure the text itself with a Range — scrollWidth never falls below
+     the element's own width and would shrink the line without limit */
+  const range=document.createRange(); range.selectNodeContents(h1);
+  const max=window.innerWidth-8;
+  let s=11.6; h1.style.fontSize=s+"em";
+  let guard=40;
+  while(range.getBoundingClientRect().width>max && guard-->0){ s-=0.25; h1.style.fontSize=s+"em"; }
 }
 fitH1();
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>fitH1());
@@ -113,72 +116,18 @@ setInterval(()=>{ if(!tickEl) return; tickEl.style.opacity=0;
   setTimeout(()=>{ tickI=(tickI+1)%LINES.length; tickEl.textContent=LINES[tickI]; tickEl.style.opacity=1; },400);
 },3600);
 
-/* ---------- Court journey: Three.js helix (reference court scene) ----------
-   Cards helix per dossier params (turns 1.5, radius .59, height 1.31, depth .49,
-   normalised here), progress = pow(p,.7) smoothed at lerp .22. Poster fallback. */
+/* ---------- Court journey: progress = pow(p,.7) smoothed at lerp .22.
+   The WebGL scene itself (Three.js helix + Canon camera GLB) lives in
+   js/journey-gl.js (ES module) and sets window.__glReady when live;
+   until then this 2D canvas crossfades the frames as the fallback. */
 const courtSec=document.getElementById("court"), canvas=document.getElementById("journeyCanvas"),
-      frameNo=document.getElementById("frameNo"), courtBig=document.getElementById("courtBig");
+      courtBig=document.getElementById("courtBig");
 let jTarget=0, jCur=-1;
-ScrollTrigger.create({ trigger:"#court", start:"top bottom", end:"bottom top",
-  onUpdate:self=>{ /* progress through the 200vh court */ } });
 ScrollTrigger.create({ trigger:"#court", start:"top top", end:window.innerWidth<=991?"bottom top":"bottom bottom",
   onUpdate:self=>{ jTarget=Math.pow(self.progress,.7); } });
 
-function webglOK(){
-  try{ const c=document.createElement("canvas");
-    return !!(window.WebGLRenderingContext && (c.getContext("webgl2")||c.getContext("webgl")));
-  }catch(e){ return false; }
-}
-let glActive=false;
-function initGL(){
-  if(!window.THREE || !webglOK()) return false;
-  let renderer;
-  try{ renderer=new THREE.WebGLRenderer({canvas, alpha:true, antialias:true, powerPreference:"high-performance"}); }
-  catch(e){ return false; }
-  const scene=new THREE.Scene();
-  const camera=new THREE.PerspectiveCamera(42,1,0.1,100); camera.position.set(0,0,7.4);
-  const group=new THREE.Group(); scene.add(group);
-  const loaderT=new THREE.TextureLoader();
-  const mkTex=src=>{ const t=loaderT.load(src); t.colorSpace=THREE.SRGBColorSpace; return t; };
-  const cards=[];
-  FRAMES.forEach((src,i)=>{
-    if(i===0) return; /* hero frame becomes the centre subject */
-    const m=new THREE.Mesh(new THREE.PlaneGeometry(1.9,1.27),
-      new THREE.MeshBasicMaterial({map:mkTex(src), toneMapped:false}));
-    const a=(i/ (FRAMES.length-1))*Math.PI*2 - Math.PI/4;
-    const r=2.1, y=(0.5-(i-1)/(FRAMES.length-2))*4.0;
-    m.position.set(Math.cos(a)*r, y, Math.sin(a)*r);
-    m.lookAt(Math.cos(a)*r*2, y*0.9, Math.sin(a)*r*2);
-    m.rotateZ((i%2? -1:1)*0.09);
-    group.add(m); cards.push(m);
-  });
-  const centre=new THREE.Mesh(new THREE.PlaneGeometry(2.7,1.8),
-    new THREE.MeshBasicMaterial({map:mkTex(FRAMES[0]), toneMapped:false}));
-  centre.position.set(0,0,1.0); centre.rotateZ(-0.03); group.add(centre);
-  function size(){
-    const w=canvas.clientWidth||innerWidth, h=canvas.clientHeight||innerHeight;
-    renderer.setSize(w,h,false); renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.75));
-    camera.aspect=w/h;
-    camera.position.z = camera.aspect<1 ? 7.4/Math.pow(camera.aspect,0.65) : 7.4;
-    camera.updateProjectionMatrix();
-  }
-  size(); window.addEventListener("resize",size);
-  window.__glRender=cur=>{
-    group.rotation.y=cur*Math.PI*3;              /* turns 1.5 across the journey */
-    group.position.y=cur*2.4;
-    centre.position.y=Math.sin(cur*Math.PI)*0.22;
-    centre.rotation.y=Math.sin(cur*Math.PI*2)*0.08;
-    camera.position.x=Math.sin(cur*Math.PI)*0.35;
-    camera.lookAt(0,0,0);
-    renderer.render(scene,camera);
-  };
-  return true;
-}
-glActive = !reduced && initGL();
-if(!glActive) courtSec.classList.add("court--fallback");
-
-/* 2D fallback renderer (poster sequence crossfade) — only if WebGL is unavailable */
-const ctx2 = glActive ? null : canvas.getContext("2d");
+/* 2D fallback renderer (poster sequence crossfade) — only drawn while the GL scene is not ready */
+const ctx2 = canvas.getContext("2d");
 function draw2D(f){
   if(!ctx2 || !imgs.length) return;
   const i=Math.min(FRAMES.length-1, Math.max(0, Math.floor(f))), fr=f-i;
@@ -192,7 +141,6 @@ function draw2D(f){
   ctx2.globalAlpha=1;
 }
 function sizeFallback(){
-  if(glActive) return;
   const r=canvas.parentElement.getBoundingClientRect();
   canvas.width=r.width; canvas.height=r.height; draw2D(jCur<0?0:jCur*(FRAMES.length-1));
 }
@@ -202,30 +150,54 @@ window.addEventListener("resize",sizeFallback); sizeFallback();
   const want=jTarget;
   if(jCur<0) jCur=want;
   jCur += (want-jCur)*.22; if(Math.abs(want-jCur)<.0005) jCur=want;
+  window.__jCur = jCur<0?0:jCur; /* read by js/journey-gl.js */
   const rect=courtSec.getBoundingClientRect();
   const inView = rect.bottom>0 && rect.top<innerHeight;
+  window.__courtInView = inView;
   if(inView){
-    frameNo.textContent=String(Math.round(jCur*(FRAMES.length-1))+1).padStart(2,"0");
-    courtBig.style.transform="translateX("+(innerWidth*(0.05-jCur*0.36))+"px)";
-    if(glActive && window.__glRender) window.__glRender(jCur);
+    courtBig.style.transform="translateX("+((0.5-jCur)*-7).toFixed(2)+"vw)";
+    if(window.__glReady){ if(canvas.style.display!=="none") canvas.style.display="none"; }
     else draw2D(jCur*(FRAMES.length-1));
   }
   requestAnimationFrame(loop);
 })();
 
-/* ---------- Tech: pinned stage — headline moment, then cards glide ---------- */
+/* ---------- Tech: pinned stage — headline moment, then cards glide.
+   Desktop choreography rests TWO cards on stage together, staggered
+   (left higher, right lower), exactly as the reference: pair in → rest →
+   pair out while the next pair enters. Phones keep the one-card glide. */
+const techPanels=gsap.utils.toArray(".tech__panel");
+const techCards=techPanels.map(p=>p.querySelector(".tcard2"));
 const techTl=gsap.timeline({ scrollTrigger:{ trigger:"#techPin", start:"top top",
   end:()=>"+="+Math.round(window.innerHeight*(window.innerWidth<=991?4.126:6.4878)), pin:true, scrub:.5, invalidateOnRefresh:true } });
 techTl.fromTo("#techIntro",{x:"52vw"},{x:"0vw",duration:.7,ease:"none"},0);
 techTl.to("#techIntro",{x:"-52vw",autoAlpha:0,duration:.7,ease:"none"},1.05);
 techTl.to("#techMeta",{autoAlpha:0,duration:.3,ease:"none"},1.05);
-gsap.utils.toArray(".tech__panel").forEach((p,i)=>{
-  const t=1.55+i*1.35;
-  techTl.fromTo(p,{x:"58vw"},{x:"0vw",duration:.55,ease:"none"},t);
-  techTl.fromTo(p,{autoAlpha:0},{autoAlpha:1,duration:.16,ease:"none"},t);
-  techTl.to(p,{x:"-58vw",duration:.5,ease:"none"},t+0.8);
-  techTl.to(p,{autoAlpha:0,duration:.22,ease:"none"},t+1.08);
-});
+if(window.innerWidth<=991){
+  techPanels.forEach((p,i)=>{
+    const t=1.55+i*1.35;
+    techTl.fromTo(p,{x:"58vw"},{x:"0vw",duration:.55,ease:"none"},t);
+    techTl.fromTo(p,{autoAlpha:0},{autoAlpha:1,duration:.16,ease:"none"},t);
+    techTl.to(p,{x:"-58vw",duration:.5,ease:"none"},t+0.8);
+    techTl.to(p,{autoAlpha:0,duration:.22,ease:"none"},t+1.08);
+  });
+}else{
+  const slotX=()=>{ const w=techCards[0].offsetWidth||528; return w/2+38; };
+  const slotY=[-52,52];
+  techCards.forEach((c,i)=>{ gsap.set(c,{x:"76vw",autoAlpha:0}); gsap.set(techPanels[i],{autoAlpha:1,visibility:"visible"}); });
+  const pairIn=(idx,t)=>{
+    idx.forEach((ci,k)=>{
+      techTl.to(techCards[ci],{x:()=> (k===0?-slotX():slotX()), y:slotY[k], autoAlpha:1, duration:.6, ease:"none"},t);
+    });
+  };
+  const pairOut=(idx,t)=>{
+    idx.forEach(ci=>{ techTl.to(techCards[ci],{x:"-76vw", autoAlpha:0, duration:.55, ease:"none"},t); });
+  };
+  pairIn([0,1],1.5);          /* Maternity + Newborn rest two-up */
+  pairOut([0,1],3.05);
+  pairIn([2,3],3.2);          /* Kids + Wedding rest two-up to the end */
+  techTl.to({},{duration:.9},4.0); /* final rest hold */
+}
 /* transition rows at the tech → names boundary */
 const trx=document.getElementById("trx");
 for(let i=0;i<14;i++) trx.appendChild(document.createElement("i"));
@@ -237,22 +209,28 @@ gsap.timeline({ scrollTrigger:{ trigger:"#names", start:"top top", end:"+=240%",
   .fromTo("#namesPhoto",{scale:1.15},{scale:1.3,ease:"none",duration:1},0)
   .fromTo(".names__big",{x:"-3vw",opacity:.4},{x:"0vw",opacity:1,ease:"none",duration:.4},0)
   .fromTo(".names__panel",{y:46,autoAlpha:0},{y:0,autoAlpha:1,ease:"power1.out",duration:.25},0.44)
-  .fromTo(".names__vert",{y:"-42%"},{y:"-58%",ease:"none",duration:1},0);
+  .fromTo(".names__vert",{opacity:0},{opacity:1,ease:"none",duration:.3},0.2);
 
-/* ---------- Finale: sticky scrub — pouches float in, CTA lands ---------- */
-gsap.fromTo(".pouch",{y:130,rotation:i=>i?5:-6},{y:0,rotation:i=>i?2.5:-3,stagger:.12,ease:"none",
-  scrollTrigger:{trigger:"#finale",start:"top top",end:"+=130%",scrub:.6}});
-gsap.fromTo(".finale__big",{y:-40,opacity:.4},{y:0,opacity:1,ease:"none",
-  scrollTrigger:{trigger:"#finale",start:"top top",end:"+=80%",scrub:.6}});
-gsap.fromTo(".finale__cta",{opacity:0,y:34},{opacity:1,y:0,ease:"none",
-  scrollTrigger:{trigger:"#finale",start:"top 60%",end:"top top",scrub:.6}});
+/* ---------- Finale: sticky scrub spread across the whole 410vh —
+   kicker/headline settle first, frosted frames float in slowly,
+   the single CTA lands only near the end (reference pacing). ---------- */
 gsap.fromTo(".finale__stage",{autoAlpha:0},{autoAlpha:1,ease:"none",
-  scrollTrigger:{trigger:"#finale",start:"top 32%",end:"top top",scrub:.4}});
+  scrollTrigger:{trigger:".finale__stage",start:"top bottom",end:"top top",scrub:.4}});
+const finTl=gsap.timeline({ scrollTrigger:{ trigger:".finale__stage", start:"top bottom", end:"+=2600", scrub:.6 } });
+finTl.fromTo([".finale__kick",".finale__big"],{y:-34,opacity:0},{y:0,opacity:1,stagger:.15,duration:.5,ease:"none"},0);
+finTl.fromTo(".pouch",{y:700,rotation:i=>i?5:-6},{y:0,rotation:i=>i?2:-2.5,stagger:.25,duration:1.2,ease:"none"},1.7);
+finTl.fromTo(".finale__cta",{opacity:0,y:34},{opacity:1,y:0,duration:.45,ease:"none"},2.5);
+finTl.to({},{duration:.35},2.95);
 
-/* ---------- Names tool: initials drawn vertically into the frame ---------- */
+/* ---------- Names tool: panel starts as heading + copy + CTA, as the reference;
+   the input appears only after the CTA. Initials are drawn vertically
+   into the frame and shown large at the subject zone. ---------- */
 const nInput=document.getElementById("nameInput"), nMono=document.getElementById("namesMono"),
-      nVert=document.getElementById("namesVert"),
+      nVert=document.getElementById("namesVert"), nPanel=document.getElementById("namesPanel"),
       nCan=document.getElementById("namesCanvas"), nCtx=nCan.getContext("2d");
+document.getElementById("namesCta").addEventListener("click",()=>{
+  nPanel.classList.add("open"); setTimeout(()=>nInput.focus(),60);
+});
 function initialsOf(name){
   const parts=(name||"").trim().split(/\s+/).filter(Boolean);
   if(!parts.length) return "X";
@@ -263,21 +241,11 @@ function drawMono(){
   const raw=nInput.value.trim();
   const ini=initialsOf(raw||"Shashi Patel");
   nMono.textContent=ini;
-  nVert.textContent=raw||"Shashi Patel";
+  nVert.textContent=ini;
+  /* one vertical mark only (the HTML type at the subject zone), as in the
+     reference — the canvas carries no second copy */
   const W=nCan.width, H=nCan.height; if(!W||!H) return;
   nCtx.clearRect(0,0,W,H);
-  const x=W*0.635, y=H*0.56;
-  nCtx.save(); nCtx.translate(x,y); nCtx.rotate(-Math.PI/2);
-  nCtx.font="900 "+Math.round(H*0.085)+"px 'FK Screamer', Impact, sans-serif";
-  nCtx.textAlign="center"; nCtx.textBaseline="middle";
-  nCtx.shadowColor="rgba(0,0,0,.5)"; nCtx.shadowBlur=8;
-  nCtx.fillStyle="#EDE4D2"; nCtx.fillText(ini,0,0);
-  nCtx.restore();
-  nCtx.save(); nCtx.translate(x+H*0.075,y); nCtx.rotate(-Math.PI/2);
-  nCtx.font=Math.round(H*0.034)+"px Caveat, cursive"; nCtx.textAlign="center";
-  nCtx.fillStyle="#C9A227"; nCtx.shadowColor="rgba(0,0,0,.5)"; nCtx.shadowBlur=6;
-  nCtx.fillText("framed by ShashiClicks",0,0);
-  nCtx.restore();
 }
 function fitNamesCanvas(){
   const st=nCan.parentElement, w=st.clientWidth, h=st.clientHeight;
@@ -292,7 +260,8 @@ fitNamesCanvas();
 /* ---------- Shot-clock HUD: 24 → 0 across the page, 7 stops ---------- */
 const hudNum=document.getElementById("hudNum"), hudLabel=document.getElementById("hudLabel"),
       hudFrac=document.getElementById("hudFrac"), hudTicks=document.getElementById("hudTicks");
-for(let i=0;i<24;i++) hudTicks.appendChild(document.createElement("i"));
+const TICKS=40;
+for(let i=0;i<TICKS;i++) hudTicks.appendChild(document.createElement("i"));
 const tickEls=hudTicks.children;
 const STOPS=[["#hero","The Studio","01 / 07"],["#court","The Journey","02 / 07"],["#tech","Specialities","03 / 07"],
   ["#names","Your Names","04 / 07"],["#testi","Word of Mouth","05 / 07"],["#finale","Get Ready","06 / 07"],
@@ -304,8 +273,8 @@ function hudUpdate(){
   const p=max>0? Math.min(1, Math.max(0, (window.scrollY||0)/max)) : 0;
   const n=24*(1-p);
   hudNum.textContent = n>=9.95 ? String(Math.round(n)) : n.toFixed(1);
-  const filled=Math.round(p*24);
-  for(let i=0;i<24;i++) tickEls[i].className = i<filled ? "on" : "";
+  const filled=Math.round(p*TICKS);
+  for(let i=0;i<TICKS;i++) tickEls[i].className = i<filled ? "on" : "";
   const probe=(window.scrollY||0)+innerHeight*0.45;
   let cur=stopEls[0];
   for(const s of stopEls){ if(!s.el) continue;
@@ -317,13 +286,18 @@ function hudUpdate(){
     hudLabel.textContent=cur.label; hudFrac.textContent=cur.frac;
     hudEl.classList.toggle("hud--light", cur.label==="Get Ready");
   }
+  /* the hero carries its own reticle in this corner (reference grammar) —
+     the shot-clock HUD only appears from the journey on */
+  const onHero = cur && cur.label==="The Studio";
+  hudEl.style.opacity = onHero ? "0" : "";
+  hudEl.style.pointerEvents = onHero ? "none" : "";
 }
 window.addEventListener("scroll",hudUpdate,{passive:true});
 if(lenis) lenis.on("scroll",hudUpdate);
 hudUpdate();
 
 /* ---------- Reveals ---------- */
-gsap.utils.toArray(".dusk h2, .founder, .dusk__vision > div").forEach(el=>{
+gsap.utils.toArray(".dusk h2, .founder").forEach(el=>{
   gsap.fromTo(el,{y:44,opacity:0},{y:0,opacity:1,duration:.6,ease:"power1.out",
     scrollTrigger:{trigger:el,start:"top 92%",once:true}});
 });
