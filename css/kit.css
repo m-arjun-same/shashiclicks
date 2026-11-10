@@ -4,7 +4,7 @@
 .kit__stage{position:sticky;top:0;height:100vh;overflow:hidden}
 .kit__stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .kit__stage canvas{position:absolute;inset:0;width:100%;height:100%;z-index:2}
-.kit__stage::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(7,5,3,.38),transparent 30%,transparent 72%,rgba(7,5,3,.55));pointer-events:none}
+.kit__stage::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(11,10,8,.38),transparent 30%,transparent 72%,rgba(11,10,8,.55));pointer-events:none}
 .kit__toprow{position:absolute;z-index:4;top:0;left:0;right:0;display:flex;align-items:center;gap:1.2em;padding:1.4em 2em}
 .kit__room{font-family:var(--mono);font-size:.72em;text-transform:uppercase;letter-spacing:.14em;color:var(--sand)}
 .kit__back{margin-left:auto;font-family:var(--mono);font-size:.72em;text-transform:uppercase;letter-spacing:.14em;color:var(--sand)}
@@ -34,11 +34,11 @@
 .swbar button{flex:1;border:0;cursor:pointer;transition:flex var(--duration-normal) var(--ease-default);position:relative}
 .swbar button.on{flex:2.1;box-shadow:inset 0 0 0 2px var(--sand)}
 
-.ini-box{border:1.5px dashed rgba(237,228,210,.35);border-radius:.9em;height:6.8em;display:flex;align-items:center;justify-content:center;margin-bottom:1.1em;background:rgba(7,5,3,.35)}
+.ini-box{border:1.5px dashed rgba(237,228,210,.35);border-radius:.9em;height:6.8em;display:flex;align-items:center;justify-content:center;margin-bottom:1.1em;background:rgba(11,10,8,.35)}
 .ini-box span{font-family:var(--display);font-weight:900;font-size:3.4em;letter-spacing:.12em;color:var(--taupe-deep)}
 .ini-box span.live{color:var(--sand)}
 
-.kit input[type=text],.kit input[type=date],.kit input[type=tel],.kit input[type=email],.kit textarea{width:100%;background:#0D0A07;border:1px dashed var(--hairline);border-radius:.5em;color:var(--sand);font-family:var(--body);font-size:1.05em;padding:.75em 1em;outline:none;margin-bottom:.8em;color-scheme:dark}
+.kit input[type=text],.kit input[type=date],.kit input[type=tel],.kit input[type=email],.kit textarea{width:100%;background:#0F0C09;border:1px dashed var(--hairline);border-radius:.5em;color:var(--sand);font-family:var(--body);font-size:1.05em;padding:.75em 1em;outline:none;margin-bottom:.8em;color-scheme:dark}
 .kit input:focus,.kit textarea:focus{border-color:var(--gold);border-style:solid}
 .kit__grid2{display:grid;grid-template-columns:1fr 1fr;gap:.8em}
 .kit label.ck{display:flex;gap:.75em;align-items:center;color:var(--white-soft);font-weight:300;padding:.5em .9em;border:1px solid var(--hairline);border-radius:.6em;margin-bottom:.55em;cursor:pointer;transition:border-color var(--duration-normal) var(--ease-default)}

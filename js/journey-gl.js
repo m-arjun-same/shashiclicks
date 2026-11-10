@@ -38,9 +38,9 @@ function init() {
   camera.position.set(0, 0, 7.4);
 
   /* warm stage lighting, key from the top-right where the light cone sits */
-  scene.add(new THREE.HemisphereLight(0xfff1da, 0x191007, 1.05));
+  scene.add(new THREE.HemisphereLight(0xfff1da, 0x211a12, 1.05));
   const key = new THREE.DirectionalLight(0xffd6a1, 3.3); key.position.set(5, 8, 6); scene.add(key);
-  const rim = new THREE.DirectionalLight(0xc9a227, 1.7); rim.position.set(-6, 2, -4); scene.add(rim);
+  const rim = new THREE.DirectionalLight(0xffd6a1, 1.7); rim.position.set(-6, 2, -4); scene.add(rim);
   const front = new THREE.DirectionalLight(0xfff6e6, 0.95); front.position.set(0, 1, 8); scene.add(front);
 
   const group = new THREE.Group(); scene.add(group);

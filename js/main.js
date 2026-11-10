@@ -136,7 +136,7 @@ function draw2D(f){
     const s=Math.max(canvas.width/im.naturalWidth, canvas.height/im.naturalHeight);
     const w=im.naturalWidth*s, h=im.naturalHeight*s;
     ctx2.globalAlpha=alpha; ctx2.drawImage(im,(canvas.width-w)/2,(canvas.height-h)/2,w,h); };
-  ctx2.globalAlpha=1; ctx2.fillStyle="#070503"; ctx2.fillRect(0,0,canvas.width,canvas.height);
+  ctx2.globalAlpha=1; ctx2.fillStyle="#0B0A08"; ctx2.fillRect(0,0,canvas.width,canvas.height);
   drawOne(a,1); if(fr>0.01&&b!==a) drawOne(b,fr);
   ctx2.globalAlpha=1;
 }

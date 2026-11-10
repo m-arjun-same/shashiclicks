@@ -4,7 +4,7 @@
 (function(){
 "use strict";
 const SERVICES=["Maternity Photography","Newborn Photography","Infant / Toddler Photography","Kids Photography","Cake Smash","Sibling Photography","Family Photography","Event Photography","Wedding Photography","Pre-Post Wedding Photography","Fashion Portfolio Photography","Professional Headshot","Product Photography","Matrimony","UGC Shoot","Interior Walkthrough","Live Streaming"];
-let service=SERVICES[0], place="Studio — Hafeezpet", frameColor="#C9A227";
+let service=SERVICES[0], place="Studio — Hafeezpet", frameColor="#C96F4A";
 const $=id=>document.getElementById(id);
 const chips=$("serviceChips");
 SERVICES.forEach((s,i)=>{
