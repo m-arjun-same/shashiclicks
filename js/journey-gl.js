@@ -39,6 +39,8 @@ function settings() {
 let renderer, scene, camera, carrier, inner, model = null;
 let cards = [], headGroup = null, headMats = [];
 let spot, spotTarget, hemi, amb, point, rim, frontDir, coneMats = [], poolMat, poolSprite;
+let disPts = null, disMat = null;    // hero→court disintegration bridge (§8)
+const xrayU = { uXrayK: { value: 0 }, uXrayGap: { value: 0 }, uCell: { value: 0.01 } };
 let F = 0, Ro = 0, capP = 0;         // flight / card-ring / caption progress
 let land = 0.5, Tt = 1, anchorDt = new THREE.Vector3(0, 2, 3);
 const Ge = v => land + (1 - land) * v; // local phase → global progress (spec §8.2)
@@ -78,25 +80,186 @@ function coverAnchor() {
   Tt = clamp(Math.abs(Tt), 0.05, 3);
 }
 
+/* Disintegration bridge (spec Annex B §8): 3000 points sampled from the
+   largest mesh's surface + an x-ray grid discard on the model's own
+   materials. He (driven in frame()) scatters the points (uDis = He*.18)
+   while matching grid cells dissolve on the mesh (uXrayK = min(1,He*1.6),
+   uXrayGap = He*.55) — the object dissolves into its own dust mid-flight
+   and re-forms as it lands at the court centre. */
+function buildDisintegration(holderEl) {
+  const va = new THREE.Vector3(), vb = new THREE.Vector3(), vc = new THREE.Vector3(), e1 = new THREE.Vector3(), e2 = new THREE.Vector3();
+  let best = null;
+  model.traverse(o => {
+    if (!o.isMesh || !o.geometry || !o.geometry.attributes.position) return;
+    const pos = o.geometry.attributes.position, idx = o.geometry.index;
+    const triCount = Math.floor((idx ? idx.count : pos.count) / 3);
+    let area = 0;
+    for (let i = 0; i < triCount; i++) {
+      const i0 = idx ? idx.getX(i * 3) : i * 3, i1 = idx ? idx.getX(i * 3 + 1) : i * 3 + 1, i2 = idx ? idx.getX(i * 3 + 2) : i * 3 + 2;
+      va.fromBufferAttribute(pos, i0); vb.fromBufferAttribute(pos, i1); vc.fromBufferAttribute(pos, i2);
+      e1.subVectors(vb, va); e2.subVectors(vc, va);
+      area += e1.cross(e2).length() * 0.5;
+    }
+    if (!best || area > best.area) best = { mesh: o, area, triCount };
+  });
+  if (!best) return;
+  const mesh = best.mesh, geo = mesh.geometry, pos = geo.attributes.position, idx = geo.index;
+  const triCount = best.triCount;
+  const cum = new Float32Array(triCount);
+  let total = 0;
+  for (let i = 0; i < triCount; i++) {
+    const i0 = idx ? idx.getX(i * 3) : i * 3, i1 = idx ? idx.getX(i * 3 + 1) : i * 3 + 1, i2 = idx ? idx.getX(i * 3 + 2) : i * 3 + 2;
+    va.fromBufferAttribute(pos, i0); vb.fromBufferAttribute(pos, i1); vc.fromBufferAttribute(pos, i2);
+    e1.subVectors(vb, va); e2.subVectors(vc, va);
+    total += e1.cross(e2).length() * 0.5;
+    cum[i] = total;
+  }
+  if (!total) return;
+  // transform chain: mesh local → holder local (includes the model's
+  // normalisation scale / offset / rotation)
+  const chain = new THREE.Matrix4();
+  const mats = [];
+  let node = mesh;
+  while (node && node !== holderEl) { node.updateMatrix(); mats.push(node.matrix); node = node.parent; }
+  for (let i = mats.length - 1; i >= 0; i--) chain.multiply(mats[i]);
+  const COUNT = 3000;
+  const positions = new Float32Array(COUNT * 3);
+  const rands = new Float32Array(COUNT * 4);
+  const P = new THREE.Vector3();
+  for (let n = 0; n < COUNT; n++) {
+    const r = Math.random() * total;
+    let lo = 0, hi = triCount - 1;
+    while (lo < hi) { const mid = (lo + hi) >> 1; if (cum[mid] < r) lo = mid + 1; else hi = mid; }
+    const i0 = idx ? idx.getX(lo * 3) : lo * 3, i1 = idx ? idx.getX(lo * 3 + 1) : lo * 3 + 1, i2 = idx ? idx.getX(lo * 3 + 2) : lo * 3 + 2;
+    va.fromBufferAttribute(pos, i0); vb.fromBufferAttribute(pos, i1); vc.fromBufferAttribute(pos, i2);
+    let u = Math.random(), v = Math.random();
+    if (u + v > 1) { u = 1 - u; v = 1 - v; }
+    P.copy(va).addScaledVector(e1.subVectors(vb, va), u).addScaledVector(e2.subVectors(vc, va), v);
+    P.applyMatrix4(chain);
+    positions[n * 3] = P.x; positions[n * 3 + 1] = P.y; positions[n * 3 + 2] = P.z;
+    const th = Math.random() * Math.PI * 2, ph = Math.acos(2 * Math.random() - 1);
+    rands[n * 4] = Math.sin(ph) * Math.cos(th);
+    rands[n * 4 + 1] = Math.cos(ph);
+    rands[n * 4 + 2] = Math.sin(ph) * Math.sin(th);
+    rands[n * 4 + 3] = Math.random();
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  g.setAttribute('aRand', new THREE.BufferAttribute(rands, 4));
+  disMat = new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    uniforms: { uDis: { value: 0 }, uHe: { value: 0 }, uWorldK: { value: 1 }, uScaleH: { value: 1000 } },
+    vertexShader: [
+      'attribute vec4 aRand;',
+      'uniform float uDis; uniform float uWorldK; uniform float uScaleH;',
+      'varying float vPh;',
+      'void main(){',
+      ' vPh = aRand.w;',
+      ' vec3 p = position + aRand.xyz * (uDis * (0.35 + aRand.w));',
+      ' vec4 mv = modelViewMatrix * vec4(p, 1.0);',
+      ' float sz = mix(0.0035, 0.0085, aRand.w) * uWorldK;',
+      ' gl_PointSize = sz * uScaleH / max(0.1, -mv.z);',
+      ' gl_Position = projectionMatrix * mv;',
+      '}'
+    ].join('\n'),
+    fragmentShader: [
+      'uniform float uHe;',
+      'varying float vPh;',
+      'void main(){',
+      ' vec3 col = mix(vec3(0.93, 0.85, 0.66), vec3(1.0, 0.96, 0.84), vPh);',
+      ' gl_FragColor = vec4(col, uHe * (0.5 + 0.5 * vPh));',
+      '}'
+    ].join('\n')
+  });
+  disPts = new THREE.Points(g, disMat);
+  disPts.frustumCulled = false;
+  disPts.visible = false;
+  holderEl.add(disPts);
+  if (renderer) disMat.uniforms.uScaleH.value = renderer.domElement.height / (2 * Math.tan(42 * Math.PI / 360));
+  // x-ray grid discard + gold grid tint on the model's own materials
+  geo.computeBoundingBox();
+  const gh = geo.boundingBox ? geo.boundingBox.getSize(new THREE.Vector3()).y : 0;
+  if (gh) xrayU.uCell.value = gh / 22;
+  const patched = new Set();
+  model.traverse(o => {
+    if (!o.isMesh || !o.material || patched.has(o.material)) return;
+    patched.add(o.material);
+    const mat = o.material;
+    mat.onBeforeCompile = sh => {
+      sh.uniforms.uXrayK = xrayU.uXrayK;
+      sh.uniforms.uXrayGap = xrayU.uXrayGap;
+      sh.uniforms.uCell = xrayU.uCell;
+      sh.vertexShader = 'varying vec3 vObjPos;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vObjPos = position;');
+      sh.fragmentShader = ('uniform float uXrayK;\nuniform float uXrayGap;\nuniform float uCell;\nvarying vec3 vObjPos;\n' + sh.fragmentShader)
+        .replace('#include <clipping_planes_fragment>', [
+          '#include <clipping_planes_fragment>',
+          ' vec3 xgPos = vObjPos / max(uCell, 0.0001);',
+          ' vec3 xgCell = floor(xgPos);',
+          ' float xgHash = fract(sin(dot(xgCell, vec3(12.9898, 78.233, 37.719))) * 43758.5453);',
+          ' if (uXrayK > 0.001 && xgHash < uXrayK * 0.85) discard;'
+        ].join('\n'))
+        .replace('#include <color_fragment>', [
+          '#include <color_fragment>',
+          ' if (uXrayK > 0.001) {',
+          '   vec3 xgF = abs(fract(xgPos) - 0.5);',
+          '   float xgEdge = smoothstep(0.40, 0.5, max(xgF.x, max(xgF.y, xgF.z)));',
+          '   diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.98, 0.80, 0.50), xgEdge * uXrayK * 0.9);',
+          ' }'
+        ].join('\n'));
+    };
+    mat.customProgramCacheKey = () => 'xray-grid-1';
+    mat.needsUpdate = true;
+  });
+}
+
 function makeHeadTexture(text) {
   const c = document.createElement('canvas');
   c.width = 1024; c.height = 256;
   const x = c.getContext('2d');
+  const FIN = [246, 240, 226], TER = [201, 111, 74], UNR = [139, 125, 107];
   const draw = p => {
     x.clearRect(0, 0, 1024, 256);
     x.font = '900 190px "FK Screamer", Impact, sans-serif';
     x.textAlign = 'center'; x.textBaseline = 'middle';
     const w = x.measureText(text).width;
-    const g = x.createLinearGradient(512 - w / 2, 0, 512 + w / 2, 0);
-    const un = 'rgba(139,125,107,0.22)';
     const b = clamp01(p / 100);
-    g.addColorStop(0, '#EDE4D2');
-    g.addColorStop(Math.max(0, b - 0.06), '#EDE4D2');
-    g.addColorStop(b, '#C96F4A');
-    g.addColorStop(Math.min(1, b + 0.06), un);
-    g.addColorStop(1, un);
+    // Spec HEAD shader (Annex B §8): u = (x + 2.5*(1-b)) / 3.5 across the
+    // text span; gradient stops final 0–30%, terra edge 40%, unread 50–100%.
+    const g = x.createLinearGradient(512 - w / 2, 0, 512 + w / 2, 0);
+    const mixC = (A, B, t, a) => 'rgba(' + Math.round(A[0] + (B[0] - A[0]) * t) + ',' + Math.round(A[1] + (B[1] - A[1]) * t) + ',' + Math.round(A[2] + (B[2] - A[2]) * t) + ',' + a.toFixed(3) + ')';
+    const colAt = u => {
+      if (u <= 0.30) return mixC(FIN, FIN, 0, 1);
+      if (u < 0.40) return mixC(FIN, TER, (u - 0.30) / 0.10, 1);
+      if (u < 0.50) { const t = (u - 0.40) / 0.10; return mixC(TER, UNR, t, 1 - 0.78 * t); }
+      return mixC(UNR, UNR, 0, 0.22);
+    };
+    const N = 28;
+    for (let i = 0; i <= N; i++) {
+      const xn = i / N;
+      g.addColorStop(xn, colAt((xn + 2.5 * (1 - b)) / 3.5));
+    }
     x.fillStyle = g;
     x.fillText(text, 512, 138);
+    // Beam bake (spec HEAD: ambient .78 + beamGain .85 * beam²) — the light
+    // shaft from top-right lifts the letters it crosses toward white and
+    // leaves the rest at ambient, so the filled line keeps reading as
+    // beam-lit (diagonal band, bright top-right → dim bottom-left) after
+    // the sweep completes, as in the reference's court frames.
+    x.globalCompositeOperation = 'source-atop';
+    const bg = x.createLinearGradient(900, 0, 340, 256);
+    bg.addColorStop(0, 'rgba(255,244,214,0.52)');
+    bg.addColorStop(0.42, 'rgba(255,244,214,0.12)');
+    bg.addColorStop(0.68, 'rgba(12,10,8,0.18)');
+    bg.addColorStop(1, 'rgba(12,10,8,0.27)');
+    x.fillStyle = bg;
+    x.fillRect(0, 0, 1024, 256);
+    const rg = x.createRadialGradient(740, 6, 40, 740, 6, 720);
+    rg.addColorStop(0, 'rgba(255,242,208,0.35)');
+    rg.addColorStop(0.55, 'rgba(255,242,208,0.10)');
+    rg.addColorStop(1, 'rgba(255,242,208,0)');
+    x.fillStyle = rg;
+    x.fillRect(0, 0, 1024, 256);
+    x.globalCompositeOperation = 'source-over';
   };
   draw(0);
   const tex = new THREE.CanvasTexture(c);
@@ -202,6 +365,7 @@ function init() {
     model.rotation.y = MODEL_YAW0;
     model.traverse(o => { if (o.isMesh) o.frustumCulled = false; });
     holder.add(model);
+    try { buildDisintegration(holder); } catch (e) { /* dust bridge is an enhancement */ }
   }, undefined, () => { /* model failed: cards + headline still carry the scene */ });
 
   // ---- helix cards ----
@@ -292,6 +456,7 @@ function size() {
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
+  if (disMat) disMat.uniforms.uScaleH.value = renderer.domElement.height / (2 * Math.tan(42 * Math.PI / 360));
 }
 
 function frame(ts) {
@@ -311,7 +476,11 @@ function frame(ts) {
   }
   const st = S;
   const V = sstep(0.02, 0.1, F), K = Math.pow(sstep(0.06, 0.2, F), 2);
-  const flightP = clamp01((F - land) / (1 - land));
+  // the flight starts while the hero is still exiting (fp 0 at F = land*.45)
+  // so the dissolve at the card and the whole travel stay in frame — with
+  // land = .5 on this 200vh court, a land-gated flight spent its first
+  // half parked off-screen right (measured NDC x 1.1–1.4)
+  const flightP = clamp01((F - land * 0.45) / (1 - land * 0.45));
   const ie2 = flightP * flightP * (3 - 2 * flightP);
   // ---- carrier flight (Bézier anchor → centre) ----
   const p0 = anchorDt;
@@ -321,6 +490,23 @@ function frame(ts) {
   carrier.position.copy(a.lerp(b, ie2));
   const sc = lerp(Tt, st.sockScale, ie2) * Math.max(introK, 0.0001);
   carrier.scale.setScalar(Math.max(sc, 0.0001));
+  // ---- disintegration bridge: He rises over the flight's first third
+  // (object dissolves into its surface dust), falls as it lands (§8) ----
+  // He fitted to the carrier's measured screen path (NDC x: 1.10 at F=.30,
+  // 0.98 at fp=.41, 0.64 at fp=.56, 0.27 at fp=.74): the flight component
+  // peaks while the cloud crosses mid-frame; the park component gives the
+  // brief dissolve on the object in the card as the hero exit begins
+  const HeF = sstep(0.30, 0.48, flightP) * (1 - sstep(0.58, 0.74, flightP));
+  const HeP = sstep(0.03, 0.09, F) * (1 - sstep(0.13, 0.22, F));
+  const He = Math.max(HeF, HeP * 0.85);
+  if (disMat) {
+    disMat.uniforms.uDis.value = He * 0.18;
+    disMat.uniforms.uHe.value = He;
+    disMat.uniforms.uWorldK.value = carrier.scale.x / st.sockScale;
+    if (disPts) disPts.visible = He > 0.01;
+  }
+  xrayU.uXrayK.value = Math.min(1, He * 1.6);
+  xrayU.uXrayGap.value = He * 0.55;
   const l = flightP;
   const idleF = clamp01((idleT - 2) / 3);
   const yaw = (-2 + 26 * sstep(0.4, 1, l) + Math.sin(idleT * 0.7) * 4 * idleF * (F > 0.02 ? 1 : 0)) * Math.PI / 180;

@@ -122,6 +122,7 @@ let numDigits = [];
     for (let i = 0; i < 3; i++) {
       const tEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
       tEl.setAttribute("class", "loader-num__digit");
+      tEl.setAttribute("text-anchor", "middle");
       numG.appendChild(tEl); numDigits.push(tEl);
     }
   }
@@ -137,22 +138,66 @@ let numDigits = [];
     }
   }
 })();
-const numCtx = document.createElement("canvas").getContext("2d");
-let numGeom = { F: 100, slot: 60, x0: 0, y0: 0, ox: 0, oy: 0 };
-function numLayout() {
+const blockList = $$(".loader__block", blocksWrap);
+/* Spec Annex B §1.4 rt(): blocks hide in order as progress grows —
+   count = floor(pow(min(1,q/86),1.5) * blocks), all hidden at 100. */
+function rtBlocks(q) {
+  if (!blockList.length) return;
+  let count = Math.floor(Math.pow(Math.min(1, q / 86), 1.5) * blockList.length);
+  if (q >= 4) count = Math.max(1, count);
+  if (q >= 100) count = blockList.length;
+  for (let i = 0; i < count; i++) blockList[i].style.visibility = "hidden";
+}
+const numCtx = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+/* Spec Annex B §1.5: measure FK Screamer at 200px — adv = widest digit;
+   for "0": adv0/asc/desc + a centre-row ink scan giving sx/sw. */
+let numMet = null;
+function numMeasure() {
+  if (numMet) return numMet;
+  const c = numCtx;
+  c.font = '900 200px "FK Screamer"';
+  let adv = 0;
+  for (let d = 0; d <= 9; d++) adv = Math.max(adv, c.measureText(String(d)).width);
+  if (!adv) adv = 100;
+  const m0 = c.measureText("0");
+  const asc = m0.actualBoundingBoxAscent || 150, desc = m0.actualBoundingBoxDescent || 10;
+  let sx = adv / 2, sw = Math.max(1, adv * 0.6);
+  try {
+    const oc = document.createElement("canvas");
+    oc.width = Math.ceil(adv) + 40; oc.height = 280;
+    const o = oc.getContext("2d", { willReadFrequently: true });
+    o.font = '900 200px "FK Screamer"'; o.fillStyle = "#fff";
+    o.fillText("0", 20, 20 + asc);
+    const rowY = Math.max(0, Math.min(oc.height - 1, Math.round(20 + asc - (asc - desc) / 2)));
+    const row = o.getImageData(0, rowY, oc.width, 1).data;
+    let L = -1, I = -1;
+    for (let px = 0; px < oc.width; px++) { if (row[px * 4 + 3] > 128) { if (L < 0) L = px; I = px; } }
+    if (I > L) { sx = (L + I) / 2 - 20; sw = Math.max(1, I - L); }
+  } catch (e) {}
+  numMet = { adv, adv0: m0.width || adv, asc, desc, sx, sw };
+  return numMet;
+}
+let numGeom = { F: 100, slot: 60, x0: 0, y0: 0, p: 0, C: 0, A: 3 };
+function numLayout(n3) {
   if (!numDigits.length) return;
-  numCtx.font = '900 200px "FK Screamer"';
-  const adv = numCtx.measureText("0").width || 100;
-  const M = adv / 200 * 1.04;
+  const mt = numMeasure();
+  const M = mt.adv / 200 * 1.04;
   const W = innerWidth, H = innerHeight, portrait = H > W;
   const F = Math.min(H * (portrait ? 0.42 : 0.7), W * 0.94 / (3 * M)) * 1.15;
-  numGeom = { F, slot: F * M, x0: W * 0.60, y0: H * 0.62 };
-  numGeom.ox = numGeom.x0 + numGeom.slot; numGeom.oy = numGeom.y0 - F * 0.35;
+  const k = F / 200, slotW = M * F;
+  const base = H / 2 + (mt.asc - mt.desc) * k / 2;
+  const x0 = W / 2 - (n3 ? 3 : 2) * slotW / 2;
+  numGeom = { F, slot: slotW, x0, y0: base, k };
   numDigits.forEach((d, i) => {
     d.setAttribute("font-size", F.toFixed(1));
-    d.setAttribute("x", (numGeom.x0 + i * numGeom.slot * 0.98).toFixed(1));
-    d.setAttribute("y", numGeom.y0.toFixed(1));
+    d.setAttribute("x", (x0 + (i - (n3 ? 0 : 1) + 0.5) * slotW).toFixed(1));
+    d.setAttribute("y", base.toFixed(1));
   });
+  // handoff targets (spec §1.5): zoom the "0" ink span past the screen width
+  const p = x0 + 2.5 * slotW - mt.adv0 * k / 2 + mt.sx * k;
+  numGeom.p = p;
+  numGeom.C = base - (mt.asc - mt.desc) * k / 2;
+  numGeom.A = 2 * Math.max(p, W - p) / Math.max(mt.sw * k, 1) * 1.2;
 }
 let lastShownInt = -1;
 function numRender(v) {
@@ -162,7 +207,7 @@ function numRender(v) {
   const s = v >= 100 ? "100" : " " + String(n).padStart(2, "0");
   numDigits.forEach((d, i) => d.textContent = s[i] === " " ? "" : s[i]);
   const sc = 1 + 0.06 * Math.min(1, v / 100);
-  numG.setAttribute("transform", "translate(" + numGeom.ox + " " + numGeom.oy + ") scale(" + sc + ") translate(" + (-numGeom.ox) + " " + (-numGeom.oy) + ")");
+  numG.setAttribute("transform", "translate(" + (innerWidth / 2) + " " + (innerHeight / 2) + ") scale(" + sc + ") translate(" + (-innerWidth / 2) + " " + (-innerHeight / 2) + ")");
   if (pctEl) pctEl.textContent = String(n).padStart(2, "0");
   if (barFill) barFill.style.width = v + "%";
 }
@@ -193,7 +238,6 @@ const loadStart = performance.now();
 function finishLoad() {
   if (loadDone) return;
   loadDone = true;
-  numRender(100);
   wt(false);
 }
 function skipIntro() {
@@ -216,6 +260,7 @@ gsap.ticker.add(() => {
   loadShown += Math.max(step, loadTarget > loadShown ? dt * 24 : 0);
   if (loadTarget >= 100 && loadShown > 99.4 && performance.now() - loadStart > 500) loadShown = 100;
   numRender(loadShown);
+  rtBlocks(loadShown);
   if (loadShown >= 100) finishLoad();
 });
 
@@ -253,24 +298,26 @@ function wt(instant) {
   h1FillTl = playColorFill($(".hero__h1", heroEl), { manual: true, dur: 2.6 });
   ghostFillTl = ghostSeg ? playColorFill(ghostSeg.closest(".hero__h1-ghost-line"), { manual: true, dur: 2.6 }) : null;
   tagFillTl = playColorFill($(".hero__tagline", heroEl), { manual: true, dur: 1.56 });
-  const blocks = $$(".loader__block", blocksWrap);
+  // ke(): any blocks still visible step away one per 28ms (spec §1.4)
+  blockList.filter(b => b.style.visibility !== "hidden")
+    .forEach((b, i) => setTimeout(() => { b.style.visibility = "hidden"; }, i * 28));
   const tl = gsap.timeline({ defaults: { ease: "power2.inOut" }, onComplete: () => {
     if (loaderEl) loaderEl.style.display = "none";
     const ln = $(".loader-num"); if (ln) ln.style.display = "none";
     lenis.start();
   }});
   tl.to(loaderEl, { opacity: 0, duration: 0.8, ease: "power2.inOut" }, 0);
-  blocks.forEach((b, i) => {
-    tl.to(b, { yPercent: parseInt(b.dataset.dir, 10) * 118, duration: 0.9, ease: "power3.inOut" }, (i % 7) * 0.03 + Math.floor(i / 7) * 0.02);
-  });
-  // giant number handoff zoom, 1.1s power3.in, fade at .98
-  const p = numGeom.ox, W = innerWidth;
-  const A = 2 * Math.max(p, W - p) / Math.max(numGeom.slot, 1) * 1.2;
-  const numObj = { s: 1 + 0.06 };
+  // giant number handoff (spec §1.5): relayout to 3 slots, render 100,
+  // zoom the "0" ink span past screen width — 1.1s power3.in, fade at .98
+  numLayout(true);
+  lastShownInt = -1;
+  numRender(100);
+  const p = numGeom.p, C = numGeom.C, A = Math.max(numGeom.A, 1.07);
+  const numObj = { s: 1.06 };
   tl.to(numObj, { s: A, duration: 1.1, ease: "power3.in", onUpdate: () => {
-    numG.setAttribute("transform", "translate(" + p + " " + numGeom.oy + ") scale(" + numObj.s + ") translate(" + (-p) + " " + (-numGeom.oy) + ")");
+    numG.setAttribute("transform", "translate(" + p + " " + C + ") scale(" + numObj.s + ") translate(" + (-p) + " " + (-C) + ")");
   } }, 0);
-  tl.to(".loader-num", { opacity: 0, duration: 0.12 }, 1.02);
+  tl.to(".loader-num", { opacity: 0, duration: 0.2, ease: "none" }, 0.98);
   tl.add(() => {
     document.documentElement.classList.remove("is-intro");
     gsap.set(".hero__h1-line--giant > span", { opacity: 1 });
@@ -292,8 +339,14 @@ if (instantIntro) {
   loadDone = true;
   wt(true);
 } else {
-  numLayout();
+  numLayout(false);
   numRender(0);
+  if (document.fonts && document.fonts.load) {
+    document.fonts.load('900 100px "FK Screamer"').then(() => {
+      numMet = null; // re-measure with the real display font, relayout
+      if (!loadDone) { numLayout(false); lastShownInt = -1; numRender(loadShown); }
+    }).catch(() => {});
+  }
 }
 
 /* ---------------- Hero scene boot + DOM parallax ---------------- */
@@ -474,6 +527,7 @@ function startSlogan() {
     coverI = Math.max(W / 2400, H / 1600);
     offX = (W - 2400 * coverI) / 2; offY = (H - 1600 * coverI) / 2;
     spineEl.style.fontSize = (scene.clientWidth * 0.062 * 1.48) + "px";
+    $$(".sp-ch", spineEl).forEach(el => { delete el.dataset.w; });
     drawStitch();
   }
   function initialsOf(name) {
@@ -526,25 +580,49 @@ function startSlogan() {
       spineEl.appendChild(s);
     });
   }
+  const easeIO = t => { t = clamp01(t); return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
+  let lastSpineP = 0;
   function spineUpdate(p) {
-    const ini = initialsOf(curName).split("");
+    lastSpineP = p;
     const letters = $$(".sp-ch", spineEl);
     const count = letters.length;
+    if (!count || !W) return;
     // which letter indices are initials (first letter of each word)
     const words = curName.toUpperCase().split(" ");
     const keepIdx = new Set(); let off = 0;
     words.forEach(w => { if (w) keepIdx.add(off); off += w.length + 1; });
+    // natural letter widths (cached once the display font is really loaded)
+    const fontReady = !document.fonts || document.fonts.check('900 100px "FK Screamer"');
+    let wAll = 0, wKeep = 0, wNow = 0;
     letters.forEach((el, i) => {
-      if (keepIdx.has(i)) { el.style.transform = "scale(1)"; el.style.opacity = 1; return; }
+      let nat;
+      if (el.dataset.w !== undefined && fontReady) nat = parseFloat(el.dataset.w) || 0;
+      else {
+        el.style.width = "";
+        nat = el.offsetWidth || 0;
+        if (fontReady) el.dataset.w = nat;
+      }
+      wAll += nat;
+      if (keepIdx.has(i)) { wKeep += nat; wNow += nat; el.style.width = ""; el.style.opacity = 1; return; }
+      // spec §3.4: non-initial letters shrink (width) — delay .3 + idx*.42/count, window .14
       const local = clamp01((p - (0.3 + i * 0.42 / Math.max(count, 1))) / 0.14);
-      el.style.transform = "scale(" + (1 - local) + ")";
+      const w = nat * (1 - local);
+      el.style.width = w.toFixed(1) + "px";
       el.style.opacity = String(1 - local);
+      wNow += w;
     });
     const anchor = mapPt(ANCHOR.x, ANCHOR.y);
-    const move = remap(p, 0.18, 0.72), sc = remap(p, 0.3, 0.78);
-    const cx = W / 2, cy = H / 2;
-    const k = lerp(1, (260 * coverI) / Math.max(parseFloat(spineEl.style.fontSize) || 100, 1), sc);
-    spineEl.style.transform = "translate(" + (cx + (anchor.x - cx) * move) + "px," + (cy + (anchor.y - cy) * move) + "px) translate(-50%,-50%) scale(" + k + ")";
+    const J = parseFloat(spineEl.style.fontSize) || 100;
+    const move = easeIO(remap(p, 0.18, 0.72)), scT = easeIO(remap(p, 0.3, 0.78));
+    // spec je(G): scale → 105 * cover * frontScale(1.32) / width of the initials
+    const k = lerp(1, (105 * coverI * 1.32) / Math.max(wKeep, 1), scT);
+    // rotate(90deg) about origin 0 0: the full name stands as a vertical
+    // column at the right edge, vertically centred; the group then travels
+    // so the two initials end centred on the stitch anchor, at stitch size.
+    const txS = W * 0.985 + J * 0.5, tyS = H / 2 - wAll / 2;
+    const txE = anchor.x + J * 0.5 * k, tyE = anchor.y - wNow * k / 2;
+    const tx = lerp(txS, txE, move), ty = lerp(tyS, tyE, move);
+    spineEl.style.transform = "translate(" + tx.toFixed(1) + "px," + ty.toFixed(1) + "px) rotate(90deg) scale(" + k.toFixed(4) + ")";
     spineEl.style.opacity = String(1 - remap(p, 0.8, 0.9));
     // leader line: card → anchor
     const path = $("#leaderPath"), dot = $("#leaderDot");
@@ -560,6 +638,11 @@ function startSlogan() {
     }
   }
   buildSpine(); computeStitch(); sizeCanvases();
+  spineUpdate(0);
+  /* init runs under .is-prepaint (sections display:none → W/H measure 0);
+     re-measure once the reveal makes the scene measurable — the same
+     pattern the finale uses for its geometry */
+  addEventListener("shashi-reveal", () => setTimeout(() => { sizeCanvases(); spineUpdate(lastSpineP); }, 60));
   const wordFill = playColorFill(word, { manual: true, dur: 1.2 });
   const cardTl = gsap.timeline({ paused: true });
   cardTl.fromTo($$(".tbr-scene__corner", card), { scale: 0 }, { scale: 1, duration: 0.2, ease: "back.out(3)", stagger: 0.05 }, 0)
